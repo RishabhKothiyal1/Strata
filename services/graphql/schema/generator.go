@@ -8,7 +8,7 @@ import (
 
 	"github.com/graphql-go/graphql"
 
-	"github.com/novabase/novabase/services/graphql/db"
+	"github.com/strata/strata/services/graphql/db"
 )
 
 // GenerateSchema dynamically builds a GraphQL schema from PG database introspection.

@@ -1,28 +1,28 @@
-export { NovaBaseClient, NovaBaseClientOptions } from './client';
+export { StrataClient, StrataClientOptions } from './client';
 export {
-  NovaBaseAuthClient,
+  StrataAuthClient,
   User,
   Session,
   AuthStateListener,
 } from './auth';
 export {
-  NovaBaseRestClient,
+  StrataRestClient,
   FilterOperator,
   QueryFilter,
 } from './rest';
 export {
-  NovaBaseStorageClient,
+  StrataStorageClient,
   StorageBucketClient,
   BucketInfo,
   UploadResult,
 } from './storage';
 export {
-  NovaBaseFunctionsClient,
+  StrataFunctionsClient,
   FunctionInfo,
   InvokeResponse,
 } from './functions';
 export {
-  NovaBaseAIClient,
+  StrataAIClient,
   AICollectionClient,
   AICollection,
   AIDocument,
@@ -30,7 +30,7 @@ export {
   AISearchResponse,
 } from './ai';
 export {
-  NovaBaseRealtimeClient,
+  StrataRealtimeClient,
   RealtimeChannel,
   SubscriptionCallback,
 } from './realtime';

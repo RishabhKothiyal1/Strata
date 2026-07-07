@@ -76,11 +76,11 @@ type server struct {
 }
 
 func main() {
-	slog.Info("Starting NovaBase AI Service (pgvector + local embeddings)...")
+	slog.Info("Starting Strata AI Service (pgvector + local embeddings)...")
 
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		dbURL = "postgres://novabase_admin:novabase_secure_pass_123@novabase-postgres:5432/novabase?sslmode=disable"
+		dbURL = "postgres://strata_admin:strata_secure_pass_123@strata-postgres:5432/strata?sslmode=disable"
 	}
 	port := os.Getenv("PORT")
 	if port == "" {

@@ -14,8 +14,8 @@ import (
 	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/novabase/novabase/services/auth/config"
-	"github.com/novabase/novabase/services/auth/utils"
+	"github.com/strata/strata/services/auth/config"
+	"github.com/strata/strata/services/auth/utils"
 )
 
 type AuthHandler struct {
@@ -265,7 +265,7 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 		"email":    email,
 		"role":     role,
 		"org_id":   orgID,
-		"audience": "novabase-auth-me",
+		"audience": "strata-auth-me",
 	})
 }
 
@@ -287,7 +287,7 @@ func (h *AuthHandler) MFASetup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	secret := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(b)
-	otpauthURI := fmt.Sprintf("otpauth://totp/NovaBase:%s?secret=%s&issuer=NovaBase", email, secret)
+	otpauthURI := fmt.Sprintf("otpauth://totp/Strata:%s?secret=%s&issuer=Strata", email, secret)
 
 	// Save secret to database and enable MFA flag
 	updateSQL := `

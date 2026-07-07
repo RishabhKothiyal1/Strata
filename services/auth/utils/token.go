@@ -26,7 +26,7 @@ func GenerateAccessToken(userID, email, role, orgID, jwtSecret string) (string, 
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			Issuer:    "novabase-auth",
+			Issuer:    "strata-auth",
 		},
 	}
 

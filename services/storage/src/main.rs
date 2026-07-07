@@ -58,12 +58,12 @@ async fn main() {
 		)
 		.init();
 
-	info!("Starting NovaBase Storage Service in Rust...");
+	info!("Starting Strata Storage Service in Rust...");
 
 	let port = std::env::var("PORT").unwrap_or_else(|_| ":8084".to_string());
 	let config = AppConfig {
 		endpoint: std::env::var("MINIO_ENDPOINT").unwrap_or_else(|_| "http://minio:9000".to_string()),
-		access_key: std::env::var("MINIO_ACCESS_KEY").unwrap_or_else(|_| "novabase_storage_admin".to_string()),
+		access_key: std::env::var("MINIO_ACCESS_KEY").unwrap_or_else(|_| "strata_storage_admin".to_string()),
 		secret_key: std::env::var("MINIO_SECRET_KEY").unwrap_or_else(|_| "minio_secure_pass_123".to_string()),
 	};
 
@@ -71,11 +71,11 @@ async fn main() {
 	let now = chrono::Utc::now().to_rfc3339();
 	let initial_buckets = vec![
 		BucketResponse {
-			name: "novabase-storage".to_string(),
+			name: "strata-storage".to_string(),
 			created_at: now.clone(),
 		},
 		BucketResponse {
-			name: "novabase-functions".to_string(),
+			name: "strata-functions".to_string(),
 			created_at: now,
 		},
 	];

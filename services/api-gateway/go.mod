@@ -1,4 +1,4 @@
-module github.com/novabase/novabase/services/api-gateway
+module github.com/strata/strata/services/api-gateway
 
 go 1.22
 

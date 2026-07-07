@@ -57,7 +57,7 @@ async fn main() {
 		)
 		.init();
 
-	info!("Starting NovaBase Realtime Service in Rust...");
+	info!("Starting Strata Realtime Service in Rust...");
 
 	// Load Configuration
 	let port = std::env::var("PORT").unwrap_or_else(|_| ":8083".to_string());
@@ -81,16 +81,16 @@ async fn main() {
 	let nats_registry = registry.clone();
 	tokio::spawn(async move {
 		let mut subscription = nats_sub_client
-			.subscribe("novabase.realtime.>")
+			.subscribe("strata.realtime.>")
 			.await
 			.expect("Failed to subscribe to NATS wildcard topic");
 
-		info!("NATS background subscriber active on 'novabase.realtime.>'");
+		info!("NATS background subscriber active on 'strata.realtime.>'");
 
 		while let Some(message) = subscription.next().await {
-			// Extract channel name from subject: e.g. "novabase.realtime.chat_1" -> "chat_1"
+			// Extract channel name from subject: e.g. "strata.realtime.chat_1" -> "chat_1"
 			let subject = message.subject.as_str();
-			let channel = match subject.strip_prefix("novabase.realtime.") {
+			let channel = match subject.strip_prefix("strata.realtime.") {
 				Some(c) => c.to_string(),
 				None => continue,
 			};
@@ -212,7 +212,7 @@ async fn handle_websocket(socket: ws::WebSocket, state: AppState) {
 				let payload_str = payload.to_string();
 
 				// Publish payload across cluster using NATS broker backplane
-				let subject = format!("novabase.realtime.{}", channel);
+				let subject = format!("strata.realtime.{}", channel);
 				state.nats_client.publish(subject, payload_str.into()).await.unwrap();
 			}
 		}

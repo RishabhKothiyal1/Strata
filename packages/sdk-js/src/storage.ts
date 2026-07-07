@@ -1,4 +1,4 @@
-import { NovaBaseAuthClient } from './auth';
+import { StrataAuthClient } from './auth';
 
 export interface BucketInfo {
   name: string;
@@ -15,7 +15,7 @@ export class StorageBucketClient {
   constructor(
     private url: string,
     private bucket: string,
-    private auth: NovaBaseAuthClient
+    private auth: StrataAuthClient
   ) {}
 
   public async upload(
@@ -98,8 +98,8 @@ export class StorageBucketClient {
   }
 }
 
-export class NovaBaseStorageClient {
-  constructor(private url: string, private auth: NovaBaseAuthClient) {}
+export class StrataStorageClient {
+  constructor(private url: string, private auth: StrataAuthClient) {}
 
   public from(bucket: string): StorageBucketClient {
     return new StorageBucketClient(this.url, bucket, this.auth);

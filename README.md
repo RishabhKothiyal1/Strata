@@ -1,4 +1,4 @@
-# NovaBase
+# Strata
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/Go-1.23-blue.svg)](https://golang.org)
@@ -6,13 +6,13 @@
 [![Docker](https://img.shields.io/badge/Docker-Supported-blue.svg)](https://www.docker.com)
 [![TypeScript SDK](https://img.shields.io/badge/SDK-TypeScript-3178C6.svg)](packages/sdk-js)
 
-**NovaBase** is an enterprise-grade, high-performance, open-source Backend-as-a-Service (BaaS) platform. Designed for developer efficiency, reliability, and speed, NovaBase wraps databases, real-time message brokers, serverless compute runtimes, S3 storage, and AI vector search engines into a unified API ecosystem.
+**Strata** is an enterprise-grade, high-performance, open-source Backend-as-a-Service (BaaS) platform. Designed for developer efficiency, reliability, and speed, Strata wraps databases, real-time message brokers, serverless compute runtimes, S3 storage, and AI vector search engines into a unified API ecosystem.
 
 ---
 
 ## 🏛️ System Architecture
 
-NovaBase is built using a highly decoupled microservices architecture. A central **API Gateway** intercepts all incoming client requests, manages authentication, rate limiting, and metrics, and routes requests to specialized, fast downstream services.
+Strata is built using a highly decoupled microservices architecture. A central **API Gateway** intercepts all incoming client requests, manages authentication, rate limiting, and metrics, and routes requests to specialized, fast downstream services.
 
 ```mermaid
 graph TD
@@ -122,11 +122,11 @@ When the Docker Compose environment is started, the following mappings are expos
 *   [Docker Desktop](https://www.docker.com/products/docker-desktop/) or Docker Engine with Docker Compose CLI v2.
 *   Git command line tools.
 
-### Running NovaBase
+### Running Strata
 1.  **Clone this repository**:
     ```bash
-    git clone https://github.com/RishabhKothiyal1/novabase.git
-    cd novabase
+    git clone https://github.com/RishabhKothiyal1/strata.git
+    cd strata
     ```
 2.  **Set up environment configuration**:
     ```bash
@@ -149,7 +149,7 @@ When the Docker Compose environment is started, the following mappings are expos
 
 ## 🧪 Testing and Verification
 
-NovaBase features dedicated testing scripts located in the brain logs and scratchpads. Below are standard API commands to verify that all systems are operational:
+Strata features dedicated testing scripts located in the brain logs and scratchpads. Below are standard API commands to verify that all systems are operational:
 
 ### 1. Gateway Health Check
 ```bash
@@ -159,12 +159,12 @@ curl -s http://localhost:8000/v1/health
 ### 2. File Upload & On-the-fly Image Resizing
 Upload a file to MinIO:
 ```bash
-curl -s -X POST "http://localhost:8084/v1/storage/buckets/novabase-storage/upload" \
+curl -s -X POST "http://localhost:8084/v1/storage/buckets/strata-storage/upload" \
   -F "file=@your_image.png;filename=avatar.png"
 ```
 Download the uploaded image resized to exactly 150x150 pixels:
 ```bash
-curl -o resized_avatar.png "http://localhost:8084/v1/storage/buckets/novabase-storage/download/avatar.png?width=150&height=150"
+curl -o resized_avatar.png "http://localhost:8084/v1/storage/buckets/strata-storage/download/avatar.png?width=150&height=150"
 ```
 
 ### 3. Serverless Functions Execution
@@ -209,7 +209,7 @@ curl -s -X POST http://localhost:8086/v1/ai/collections/kb/search \
 
 ## 🧰 JavaScript / TypeScript SDK
 
-The official **`@novabase/sdk`** client library lives in [`packages/sdk-js/`](packages/sdk-js). It provides a fluent, typed interface for all NovaBase services and works in both **Node.js** and **browser** environments.
+The official **`@strata/sdk`** client library lives in [`packages/sdk-js/`](packages/sdk-js). It provides a fluent, typed interface for all Strata services and works in both **Node.js** and **browser** environments.
 
 ### Installation
 
@@ -222,9 +222,9 @@ npm run build
 ### Quick Start
 
 ```typescript
-import { NovaBaseClient } from '@novabase/sdk';
+import { StrataClient } from '@strata/sdk';
 
-const client = new NovaBaseClient('http://localhost:8000');
+const client = new StrataClient('http://localhost:8000');
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 await client.auth.signUp('user@example.com', 'password123');
@@ -298,4 +298,4 @@ client.realtime.disconnect();
 
 ## 📜 License
 
-NovaBase is open-source software licensed under the [MIT License](LICENSE).
+Strata is open-source software licensed under the [MIT License](LICENSE).

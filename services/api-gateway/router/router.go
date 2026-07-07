@@ -12,8 +12,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/redis/go-redis/v9"
 
-	"github.com/novabase/novabase/services/api-gateway/config"
-	"github.com/novabase/novabase/services/api-gateway/middleware"
+	"github.com/strata/strata/services/api-gateway/config"
+	"github.com/strata/strata/services/api-gateway/middleware"
 )
 
 func New(cfg *config.Config, rdb *redis.Client) chi.Router {

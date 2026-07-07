@@ -1,5 +1,5 @@
 # ==============================================================================
-# NovaBase Grafana Datasources Provisioning
+# Strata Grafana Datasources Provisioning
 # ==============================================================================
 apiVersion: 1
 

@@ -1,7 +1,7 @@
 {
-  "name": "@novabase/sdk",
+  "name": "@strata/sdk",
   "version": "1.0.0",
-  "description": "Official JavaScript/TypeScript SDK for NovaBase Backend-as-a-Service",
+  "description": "Official JavaScript/TypeScript SDK for Strata Backend-as-a-Service",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",

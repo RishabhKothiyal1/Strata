@@ -1,12 +1,12 @@
 # ==============================================================================
-# NovaBase Grafana Dashboards Provisioning
+# Strata Grafana Dashboards Provisioning
 # ==============================================================================
 apiVersion: 1
 
 providers:
-  - name: 'NovaBase Dashboards'
+  - name: 'Strata Dashboards'
     orgId: 1
-    folder: 'NovaBase'
+    folder: 'Strata'
     type: file
     disableDeletion: false
     updateIntervalSeconds: 10

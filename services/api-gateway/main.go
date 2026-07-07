@@ -11,14 +11,14 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/novabase/novabase/services/api-gateway/config"
-	"github.com/novabase/novabase/services/api-gateway/router"
+	"github.com/strata/strata/services/api-gateway/config"
+	"github.com/strata/strata/services/api-gateway/router"
 )
 
 const openAPISpec = `{
   "openapi": "3.0.3",
   "info": {
-    "title": "NovaBase API Gateway",
+    "title": "Strata API Gateway",
     "description": "Enterprise-ready Backend-as-a-Service Core Gateway API Specification.",
     "version": "1.0.0"
   },
@@ -144,7 +144,7 @@ const swaggerUIHTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>NovaBase API Gateway Docs</title>
+    <title>Strata API Gateway Docs</title>
     <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css" />
     <style>
         html { box-sizing: border-box; overflow: -y-scroll; }
@@ -188,7 +188,7 @@ func main() {
 	}))
 	slog.SetDefault(logger)
 
-	slog.Info("Starting NovaBase API Gateway...")
+	slog.Info("Starting Strata API Gateway...")
 
 	// 2. Load Configuration
 	cfg := config.Load()

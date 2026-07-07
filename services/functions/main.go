@@ -65,11 +65,11 @@ type server struct {
 }
 
 func main() {
-	slog.Info("Starting NovaBase Functions Service...")
+	slog.Info("Starting Strata Functions Service...")
 
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		dbURL = "postgres://novabase_admin:novabase_secure_pass_123@novabase-postgres:5432/novabase?sslmode=disable"
+		dbURL = "postgres://strata_admin:strata_secure_pass_123@strata-postgres:5432/strata?sslmode=disable"
 	}
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -148,7 +148,7 @@ func main() {
 
 func migrate(db *sql.DB) error {
 	_, err := db.Exec(`
-		CREATE TABLE IF NOT EXISTS novabase_functions (
+		CREATE TABLE IF NOT EXISTS strata_functions (
 			id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 			name        VARCHAR(255) UNIQUE NOT NULL,
 			description TEXT NOT NULL DEFAULT '',
@@ -170,7 +170,7 @@ func (s *server) handleHealth(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) handleList(w http.ResponseWriter, r *http.Request) {
 	rows, err := s.db.QueryContext(r.Context(),
-		`SELECT id, name, description, code, created_at, updated_at FROM novabase_functions ORDER BY created_at DESC`)
+		`SELECT id, name, description, code, created_at, updated_at FROM strata_functions ORDER BY created_at DESC`)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "query failed: "+err.Error())
 		return
@@ -213,7 +213,7 @@ func (s *server) handleDeploy(w http.ResponseWriter, r *http.Request) {
 	id := uuid.New().String()
 	now := time.Now().UTC()
 	_, err := s.db.ExecContext(r.Context(),
-		`INSERT INTO novabase_functions (id, name, description, code, created_at, updated_at)
+		`INSERT INTO strata_functions (id, name, description, code, created_at, updated_at)
 		 VALUES ($1, $2, $3, $4, $5, $6)`,
 		id, req.Name, req.Description, req.Code, now, now)
 	if err != nil {
@@ -264,7 +264,7 @@ func (s *server) handleUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res, err := s.db.ExecContext(r.Context(),
-		`UPDATE novabase_functions SET code=$1, description=$2, updated_at=NOW() WHERE name=$3`,
+		`UPDATE strata_functions SET code=$1, description=$2, updated_at=NOW() WHERE name=$3`,
 		req.Code, req.Description, name)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "update failed: "+err.Error())
@@ -284,7 +284,7 @@ func (s *server) handleUpdate(w http.ResponseWriter, r *http.Request) {
 func (s *server) handleDelete(w http.ResponseWriter, r *http.Request) {
 	name := chi.URLParam(r, "name")
 	res, err := s.db.ExecContext(r.Context(),
-		`DELETE FROM novabase_functions WHERE name=$1`, name)
+		`DELETE FROM strata_functions WHERE name=$1`, name)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "delete failed: "+err.Error())
 		return
@@ -434,7 +434,7 @@ func invokeFunction(code string, body interface{}, headers map[string]string, me
 func (s *server) getByName(ctx context.Context, name string) (*Function, error) {
 	var f Function
 	err := s.db.QueryRowContext(ctx,
-		`SELECT id, name, description, code, created_at, updated_at FROM novabase_functions WHERE name=$1`, name).
+		`SELECT id, name, description, code, created_at, updated_at FROM strata_functions WHERE name=$1`, name).
 		Scan(&f.ID, &f.Name, &f.Description, &f.Code, &f.CreatedAt, &f.UpdatedAt)
 	return &f, err
 }

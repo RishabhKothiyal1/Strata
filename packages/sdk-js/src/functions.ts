@@ -1,4 +1,4 @@
-import { NovaBaseAuthClient } from './auth';
+import { StrataAuthClient } from './auth';
 
 export interface FunctionInfo {
   id: string;
@@ -15,8 +15,8 @@ export interface InvokeResponse<T = any> {
   duration_ms: string;
 }
 
-export class NovaBaseFunctionsClient {
-  constructor(private url: string, private auth: NovaBaseAuthClient) {}
+export class StrataFunctionsClient {
+  constructor(private url: string, private auth: StrataAuthClient) {}
 
   public async list(): Promise<FunctionInfo[]> {
     const finalUrl = `${this.url}/v1/functions`;

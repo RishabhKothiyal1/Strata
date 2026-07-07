@@ -1,4 +1,4 @@
-import { NovaBaseAuthClient } from './auth';
+import { StrataAuthClient } from './auth';
 
 export interface AICollection {
   id: string;
@@ -35,7 +35,7 @@ export class AICollectionClient {
   constructor(
     private url: string,
     private collectionName: string,
-    private auth: NovaBaseAuthClient
+    private auth: StrataAuthClient
   ) {}
 
   public async addDocument(content: string, metadata: Record<string, any> = {}): Promise<AIDocument> {
@@ -137,8 +137,8 @@ export class AICollectionClient {
   }
 }
 
-export class NovaBaseAIClient {
-  constructor(private url: string, private auth: NovaBaseAuthClient) {}
+export class StrataAIClient {
+  constructor(private url: string, private auth: StrataAuthClient) {}
 
   public collection(name: string): AICollectionClient {
     return new AICollectionClient(this.url, name, this.auth);

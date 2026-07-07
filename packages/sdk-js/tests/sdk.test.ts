@@ -1,13 +1,13 @@
 import { Client } from 'pg';
 import { execSync } from 'child_process';
-import { NovaBaseClient } from '../src';
+import { StrataClient } from '../src';
 import * as assert from 'assert';
 
 const GATEWAY_URL = 'http://localhost:8000';
-const PG_URL = 'postgres://novabase_admin:novabase_secure_pass_123@localhost:5432/novabase';
+const PG_URL = 'postgres://strata_admin:strata_secure_pass_123@localhost:5432/strata';
 
 async function runTests() {
-  console.log('🚀 Initializing NovaBase Integration Test Suite...\n');
+  console.log('🚀 Initializing Strata Integration Test Suite...\n');
 
   // 1. Setup Test Database Table
   const pgClient = new Client({ connectionString: PG_URL });
@@ -30,7 +30,7 @@ async function runTests() {
   await new Promise((r) => setTimeout(r, 5000));
 
   // Initialize client
-  const client = new NovaBaseClient(GATEWAY_URL);
+  const client = new StrataClient(GATEWAY_URL);
 
   const email = `sdk-test-${Date.now()}@example.com`;
   const password = 'secure_password_123';
@@ -102,7 +102,7 @@ async function runTests() {
     console.log('Uploading sample text file to bucket...');
     const uploadRes = await client.storage.from(bucketName).upload(
       'notes.txt',
-      Buffer.from('Welcome to NovaBase SDK storage!'),
+      Buffer.from('Welcome to Strata SDK storage!'),
       'text/plain'
     );
     assert.strictEqual(uploadRes.filepath, 'notes.txt', 'Uploaded file path mismatch');
@@ -111,7 +111,7 @@ async function runTests() {
     console.log('Downloading uploaded file...');
     const dlResponse = await client.storage.from(bucketName).download('notes.txt');
     const dlText = await dlResponse.text();
-    assert.strictEqual(dlText, 'Welcome to NovaBase SDK storage!', 'Downloaded content mismatch');
+    assert.strictEqual(dlText, 'Welcome to Strata SDK storage!', 'Downloaded content mismatch');
     console.log('✅ Download content verified.');
 
     console.log('Deleting test bucket...');

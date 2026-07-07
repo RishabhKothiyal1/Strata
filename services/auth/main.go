@@ -14,9 +14,9 @@ import (
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/redis/go-redis/v9"
 
-	"github.com/novabase/novabase/services/auth/config"
-	"github.com/novabase/novabase/services/auth/db"
-	"github.com/novabase/novabase/services/auth/handlers"
+	"github.com/strata/strata/services/auth/config"
+	"github.com/strata/strata/services/auth/db"
+	"github.com/strata/strata/services/auth/handlers"
 )
 
 func main() {
@@ -26,7 +26,7 @@ func main() {
 	}))
 	slog.SetDefault(logger)
 
-	slog.Info("Starting NovaBase Auth Service...")
+	slog.Info("Starting Strata Auth Service...")
 
 	// 2. Load Configuration
 	cfg := config.Load()

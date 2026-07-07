@@ -1,4 +1,4 @@
-module github.com/novabase/novabase/services/auth
+module github.com/strata/strata/services/auth
 
 go 1.22
 

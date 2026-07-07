@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/novabase/novabase/services/rest/db"
+	"github.com/strata/strata/services/rest/db"
 )
 
 type BuildResult struct {

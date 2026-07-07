@@ -12,7 +12,7 @@ var (
 	HttpRequestsTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "http_requests_total",
-			Help: "Total number of HTTP requests processed by NovaBase gateway",
+			Help: "Total number of HTTP requests processed by Strata gateway",
 		},
 		[]string{"method", "path", "status"},
 	)

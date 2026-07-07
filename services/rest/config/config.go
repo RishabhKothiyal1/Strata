@@ -12,7 +12,7 @@ type Config struct {
 func Load() *Config {
 	return &Config{
 		Port:        getEnv("PORT", ":8082"),
-		DatabaseURL: getEnv("DATABASE_URL", "postgres://novabase_admin:novabase_secure_pass_123@novabase-postgres:5432/novabase?sslmode=disable"),
+		DatabaseURL: getEnv("DATABASE_URL", "postgres://strata_admin:strata_secure_pass_123@strata-postgres:5432/strata?sslmode=disable"),
 	}
 }
 

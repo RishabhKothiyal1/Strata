@@ -324,7 +324,7 @@
             "uid": "Prometheus"
           },
           "editorMode": "code",
-          "expr": "up{job=\"novabase-gateway\"}",
+          "expr": "up{job=\"strata-gateway\"}",
           "instant": true,
           "range": false,
           "refId": "A"
@@ -405,7 +405,7 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "NovaBase Infrastructure Overview",
-  "uid": "novabase-overview",
+  "title": "Strata Infrastructure Overview",
+  "uid": "strata-overview",
   "version": 1
 }

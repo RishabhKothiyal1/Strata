@@ -10,8 +10,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/novabase/novabase/services/rest/db"
-	"github.com/novabase/novabase/services/rest/query"
+	"github.com/strata/strata/services/rest/db"
+	"github.com/strata/strata/services/rest/query"
 )
 
 type RESTHandler struct {

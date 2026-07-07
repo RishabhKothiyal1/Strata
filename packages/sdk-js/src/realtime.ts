@@ -1,4 +1,4 @@
-import { NovaBaseAuthClient } from './auth';
+import { StrataAuthClient } from './auth';
 
 let WS: any;
 if (typeof WebSocket !== 'undefined') {
@@ -20,7 +20,7 @@ export class RealtimeChannel {
 
   constructor(
     private channelName: string,
-    private client: NovaBaseRealtimeClient
+    private client: StrataRealtimeClient
   ) {}
 
   public subscribe(callback: SubscriptionCallback): { unsubscribe: () => void } {
@@ -53,13 +53,13 @@ export class RealtimeChannel {
   }
 }
 
-export class NovaBaseRealtimeClient {
+export class StrataRealtimeClient {
   private ws: any = null;
   private callbacks: Map<string, Set<SubscriptionCallback>> = new Map();
   private sendQueue: any[] = [];
   private isConnecting = false;
 
-  constructor(private url: string, private auth: NovaBaseAuthClient) {}
+  constructor(private url: string, private auth: StrataAuthClient) {}
 
   public channel(channelName: string): RealtimeChannel {
     return new RealtimeChannel(channelName, this);

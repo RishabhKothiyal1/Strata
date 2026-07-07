@@ -23,9 +23,9 @@ type Config struct {
 func Load() *Config {
 	return &Config{
 		Port:          getEnv("PORT", ":8000"),
-		RedisAddr:     getEnv("REDIS_ADDR", "novabase-redis:6379"),
+		RedisAddr:     getEnv("REDIS_ADDR", "strata-redis:6379"),
 		RedisPassword: getEnv("REDIS_PASSWORD", "redis_secure_pass_123"),
-		JWTSecret:     getEnv("JWT_SECRET", "novabase_super_secret_jwt_key_98765"),
+		JWTSecret:     getEnv("JWT_SECRET", "strata_super_secret_jwt_key_98765"),
 		AuthURL:       getEnv("AUTH_SERVICE_URL", "http://auth:8081"),
 		RestURL:       getEnv("REST_SERVICE_URL", "http://rest:8082"),
 		GraphqlURL:    getEnv("GRAPHQL_SERVICE_URL", "http://graphql:8087"),

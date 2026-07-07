@@ -1,4 +1,4 @@
-import { NovaBaseAuthClient } from './auth';
+import { StrataAuthClient } from './auth';
 
 export type FilterOperator = 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'is' | 'in';
 
@@ -8,7 +8,7 @@ export interface QueryFilter {
   value: any;
 }
 
-export class NovaBaseRestClient<T = any> {
+export class StrataRestClient<T = any> {
   private method: 'GET' | 'POST' | 'PATCH' | 'DELETE' = 'GET';
   private selectCols?: string;
   private filters: QueryFilter[] = [];
@@ -20,7 +20,7 @@ export class NovaBaseRestClient<T = any> {
   constructor(
     private url: string,
     private table: string,
-    private auth: NovaBaseAuthClient
+    private auth: StrataAuthClient
   ) {}
 
   public select(columns: string = '*'): this {

@@ -12,10 +12,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 
-	"github.com/novabase/novabase/services/graphql/config"
-	"github.com/novabase/novabase/services/graphql/db"
-	"github.com/novabase/novabase/services/graphql/handlers"
-	"github.com/novabase/novabase/services/graphql/schema"
+	"github.com/strata/strata/services/graphql/config"
+	"github.com/strata/strata/services/graphql/db"
+	"github.com/strata/strata/services/graphql/handlers"
+	"github.com/strata/strata/services/graphql/schema"
 )
 
 func main() {
@@ -25,7 +25,7 @@ func main() {
 	}))
 	slog.SetDefault(logger)
 
-	slog.Info("Starting NovaBase GraphQL Engine...")
+	slog.Info("Starting Strata GraphQL Engine...")
 
 	// 2. Load Configuration
 	cfg := config.Load()

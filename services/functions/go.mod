@@ -1,4 +1,4 @@
-module github.com/novabase/novabase/services/functions
+module github.com/strata/strata/services/functions
 
 go 1.23
 

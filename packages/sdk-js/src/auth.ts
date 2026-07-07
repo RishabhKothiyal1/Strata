@@ -14,7 +14,7 @@ export interface Session {
 
 export type AuthStateListener = (event: 'SIGNED_IN' | 'SIGNED_OUT' | 'TOKEN_REFRESHED', session: Session | null) => void;
 
-export class NovaBaseAuthClient {
+export class StrataAuthClient {
   private session: Session | null = null;
   private user: User | null = null;
   private listeners: Set<AuthStateListener> = new Set();
@@ -25,7 +25,7 @@ export class NovaBaseAuthClient {
 
   private loadSession() {
     if (typeof window !== 'undefined' && window.localStorage) {
-      const stored = window.localStorage.getItem('novabase.session');
+      const stored = window.localStorage.getItem('strata.session');
       if (stored) {
         try {
           this.session = JSON.parse(stored);
@@ -53,7 +53,7 @@ export class NovaBaseAuthClient {
   private saveSession(session: Session) {
     this.session = session;
     if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem('novabase.session', JSON.stringify(session));
+      window.localStorage.setItem('strata.session', JSON.stringify(session));
     }
     // Decode user
     try {
@@ -79,7 +79,7 @@ export class NovaBaseAuthClient {
     this.session = null;
     this.user = null;
     if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.removeItem('novabase.session');
+      window.localStorage.removeItem('strata.session');
     }
   }
 

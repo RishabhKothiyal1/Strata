@@ -1,5 +1,5 @@
 -- ==============================================================================
--- NovaBase Database Initialization: Extensions Setup
+-- Strata Database Initialization: Extensions Setup
 -- ==============================================================================
 
 -- Enable UUID generation

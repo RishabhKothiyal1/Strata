@@ -12,9 +12,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 
-	"github.com/novabase/novabase/services/rest/config"
-	"github.com/novabase/novabase/services/rest/db"
-	"github.com/novabase/novabase/services/rest/handlers"
+	"github.com/strata/strata/services/rest/config"
+	"github.com/strata/strata/services/rest/db"
+	"github.com/strata/strata/services/rest/handlers"
 )
 
 func main() {
@@ -24,7 +24,7 @@ func main() {
 	}))
 	slog.SetDefault(logger)
 
-	slog.Info("Starting NovaBase REST Generator Service...")
+	slog.Info("Starting Strata REST Generator Service...")
 
 	// 2. Load Configuration
 	cfg := config.Load()

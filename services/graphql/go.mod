@@ -1,4 +1,4 @@
-module github.com/novabase/novabase/services/graphql
+module github.com/strata/strata/services/graphql
 
 go 1.22
 

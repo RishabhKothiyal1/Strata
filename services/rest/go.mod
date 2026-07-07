@@ -1,4 +1,4 @@
-module github.com/novabase/novabase/services/rest
+module github.com/strata/strata/services/rest
 
 go 1.22
 

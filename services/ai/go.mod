@@ -1,4 +1,4 @@
-module github.com/novabase/novabase/services/ai
+module github.com/strata/strata/services/ai
 
 go 1.23
 
