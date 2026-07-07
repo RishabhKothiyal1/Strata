@@ -1,0 +1,35 @@
+# Env files
+.env
+.env.local
+.env.*.local
+
+# Rust builds
+**/target/
+**/*.rs.bk
+
+# Go builds
+**/dist/
+**/bin/
+services/api-gateway/api-gateway
+services/auth/auth
+services/rest/rest
+services/graphql/graphql
+services/functions/functions
+services/ai/ai
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+**/logs/
+
+# IDE files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
