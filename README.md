@@ -147,6 +147,68 @@ When the Docker Compose environment is started, the following mappings are expos
 
 ---
 
+## 🖥️ CLI Tool (`strata`)
+
+The Strata CLI provides a polished command-line interface for managing your project. It wraps Docker Compose, the REST API, and all Strata services into simple, discoverable commands.
+
+### Installation
+
+```bash
+# From source (requires Go 1.22+)
+cd cli && go build -o strata .
+sudo mv strata /usr/local/bin/
+
+# Or use the Makefile
+make install-cli
+```
+
+### Usage
+
+```bash
+# Start the project
+cd /path/to/your/project
+strata start
+
+# Check service health
+strata status
+
+# Initialize a new Strata project
+strata init my-project
+
+# Login
+strata login --email user@example.com
+strata whoami
+
+# Database management
+strata db push          # Push schema to database
+strata db pull          # Pull schema from database
+strata db seed          # Seed with sample data
+
+# Generate TypeScript types from DB schema
+strata types generate
+
+# Serverless functions
+strata functions list
+strata functions deploy greeter handler.js
+strata functions invoke greeter --data '{"name":"World"}'
+strata functions delete greeter
+
+# Storage
+strata storage buckets list
+strata storage upload my-bucket ./photo.png
+strata storage download my-bucket photos/avatar.png
+
+# AI / Vector search
+strata ai collections
+strata ai collections create knowledge-base
+strata ai documents add knowledge-base "Strata is a BaaS platform."
+strata ai search knowledge-base "What is Strata?"
+```
+
+All commands support `--help` for detailed usage, `--gateway` for custom API URLs, and `--token` for authenticated operations.
+
+---
+
 ## 🧪 Testing and Verification
 
 Strata features dedicated testing scripts located in the brain logs and scratchpads. Below are standard API commands to verify that all systems are operational:

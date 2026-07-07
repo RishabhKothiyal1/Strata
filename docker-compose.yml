@@ -409,6 +409,26 @@ services:
     networks:
       - strata-network
 
+  # ============================================================================
+  # CLI - Command-line tool for Strata (runs as a utility container)
+  # ============================================================================
+  cli:
+    build:
+      context: ./cli
+    container_name: strata-cli
+    profiles:
+      - cli
+    depends_on:
+      - api-gateway
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./:/project
+    working_dir: /project
+    networks:
+      - strata-network
+    environment:
+      - GATEWAY_URL=http://api-gateway:8000
+
 networks:
   strata-network:
     name: strata-network
