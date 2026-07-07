@@ -4,6 +4,7 @@
 [![Go Version](https://img.shields.io/badge/Go-1.23-blue.svg)](https://golang.org)
 [![Rust Version](https://img.shields.io/badge/Rust-1.88-orange.svg)](https://www.rust-lang.org)
 [![Docker](https://img.shields.io/badge/Docker-Supported-blue.svg)](https://www.docker.com)
+[![TypeScript SDK](https://img.shields.io/badge/SDK-TypeScript-3178C6.svg)](packages/sdk-js)
 
 **NovaBase** is an enterprise-grade, high-performance, open-source Backend-as-a-Service (BaaS) platform. Designed for developer efficiency, reliability, and speed, NovaBase wraps databases, real-time message brokers, serverless compute runtimes, S3 storage, and AI vector search engines into a unified API ecosystem.
 
@@ -202,6 +203,95 @@ Execute semantic similarity search:
 curl -s -X POST http://localhost:8086/v1/ai/collections/kb/search \
   -H "Content-Type: application/json" \
   -d '{"query": "image resizing", "top_k": 1}'
+```
+
+---
+
+## 🧰 JavaScript / TypeScript SDK
+
+The official **`@novabase/sdk`** client library lives in [`packages/sdk-js/`](packages/sdk-js). It provides a fluent, typed interface for all NovaBase services and works in both **Node.js** and **browser** environments.
+
+### Installation
+
+```bash
+cd packages/sdk-js
+npm install
+npm run build
+```
+
+### Quick Start
+
+```typescript
+import { NovaBaseClient } from '@novabase/sdk';
+
+const client = new NovaBaseClient('http://localhost:8000');
+
+// ── Auth ─────────────────────────────────────────────────────────────────────
+await client.auth.signUp('user@example.com', 'password123');
+const { session } = await client.auth.signIn('user@example.com', 'password123');
+
+// ── REST Database ─────────────────────────────────────────────────────────────
+// Insert a row
+const post = await client.from('posts').insert({ title: 'Hello World' }).execute();
+
+// Query with filters, ordering, and pagination
+const posts = await client.from('posts')
+  .select('*')
+  .eq('published', true)
+  .order('created_at', 'desc')
+  .limit(10)
+  .execute();
+
+// Update rows matching a filter
+await client.from('posts').update({ published: false }).eq('id', post.id).execute();
+
+// Delete a row
+await client.from('posts').delete().eq('id', post.id).execute();
+
+// ── Storage ───────────────────────────────────────────────────────────────────
+// Upload a file
+const result = await client.storage.from('my-bucket').upload('avatar.png', fileBuffer, 'image/png');
+
+// Download with on-the-fly image resize
+const res = await client.storage.from('my-bucket').download('avatar.png', { width: 128, height: 128 });
+const blob = await res.blob();
+
+// ── Edge Functions ────────────────────────────────────────────────────────────
+// Deploy a JavaScript function
+await client.functions.deploy('greet', `
+  function handler(request) {
+    return { statusCode: 200, body: { msg: "Hello " + request.body.name } };
+  }
+`);
+
+// Invoke it
+const { body } = await client.functions.invoke('greet', { name: 'World' });
+console.log(body.msg); // "Hello World"
+
+// ── AI / Vector Search ────────────────────────────────────────────────────────
+// Create a collection and index documents
+await client.ai.createCollection('docs', 'My knowledge base');
+await client.ai.collection('docs').addDocument('Storage resizes images with Lanczos3 filter.', { topic: 'storage' });
+await client.ai.collection('docs').addDocument('Auth uses bcrypt and JWT for sessions.', { topic: 'auth' });
+
+// Semantic similarity search
+const { results } = await client.ai.collection('docs').search('image processing', 1);
+console.log(results[0].content); // "Storage resizes images…"
+
+// ── Realtime WebSockets ───────────────────────────────────────────────────────
+const channel = client.realtime.channel('chat-room');
+
+// Subscribe to messages
+const { unsubscribe } = channel.subscribe((payload) => {
+  console.log('New message:', payload.data);
+});
+
+// Broadcast a message
+channel.broadcast({ text: 'Hello everyone!' });
+
+// Clean up
+unsubscribe();
+client.realtime.disconnect();
 ```
 
 ---
