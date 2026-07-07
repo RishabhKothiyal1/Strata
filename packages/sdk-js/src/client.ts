@@ -17,9 +17,7 @@ export class StrataClient {
   public realtime: StrataRealtimeClient;
 
   constructor(private url: string, private options: StrataClientOptions = {}) {
-    // Normalise trailing slashes
     this.url = url.replace(/\/+$/, '');
-
     this.auth = new StrataAuthClient(this.url);
     this.storage = new StrataStorageClient(this.url, this.auth);
     this.functions = new StrataFunctionsClient(this.url, this.auth);

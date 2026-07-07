@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strata AI Playground</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #252836;
+    --border: #2e3144;
+    --text: #e4e6f0;
+    --text2: #8b8fa3;
+    --accent: #6c5ce7;
+    --green: #00b894;
+    --red: #e17055;
+    --yellow: #fdcb6e;
+    --radius: 8px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 20px; }
+  h1 { font-size: 24px; margin-bottom: 4px; }
+  .subtitle { color: var(--text2); font-size: 14px; margin-bottom: 32px; }
+  h2 { font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .card-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .provider-grid { display: grid; gap: 12px; }
+  .provider-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    transition: border-color 0.2s;
+  }
+  .provider-item:hover { border-color: var(--accent); }
+  .provider-info { flex: 1; }
+  .provider-name { font-weight: 600; text-transform: capitalize; }
+  .provider-model { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .provider-status { display: flex; align-items: center; gap: 8px; margin-left: 16px; }
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--text2);
+  }
+  .status-dot.enabled { background: var(--green); }
+  .status-dot.primary { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+  .status-dot.error { background: var(--red); }
+
+  .btn {
+    padding: 8px 16px; border-radius: var(--radius); border: none;
+    cursor: pointer; font-size: 13px; font-weight: 500;
+    transition: opacity 0.2s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-danger { background: var(--red); color: white; }
+  .btn-outline {
+    background: transparent; border: 1px solid var(--border); color: var(--text);
+  }
+  .btn-sm { padding: 4px 12px; font-size: 12px; }
+  .btn-icon { background: none; border: none; color: var(--text2); cursor: pointer; padding: 4px; }
+
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6); z-index: 100;
+    justify-content: center; align-items: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 24px; width: 480px; max-width: 90vw;
+  }
+  .modal h3 { margin-bottom: 20px; }
+
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+  .form-group input, .form-group select {
+    width: 100%; padding: 10px 12px; border-radius: var(--radius);
+    border: 1px solid var(--border); background: var(--surface2);
+    color: var(--text); font-size: 14px;
+  }
+  .form-group input:focus, .form-group select:focus {
+    outline: none; border-color: var(--accent);
+  }
+  .form-row { display: flex; gap: 12px; }
+  .form-row .form-group { flex: 1; }
+
+  .api-key-input { position: relative; }
+  .api-key-input input { padding-right: 40px; }
+  .api-key-toggle {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: var(--text2); cursor: pointer; font-size: 14px;
+  }
+
+  .tab-bar { display: flex; gap: 4px; margin-bottom: 24px; }
+  .tab {
+    padding: 8px 20px; border-radius: var(--radius); cursor: pointer;
+    font-size: 14px; color: var(--text2); border: 1px solid transparent;
+    transition: all 0.2s;
+  }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { color: var(--accent); border-color: var(--accent); background: rgba(108,92,231,0.1); }
+
+  .test-result { font-size: 13px; margin-top: 8px; padding: 8px; border-radius: 4px; }
+  .test-result.ok { background: rgba(0,184,148,0.1); color: var(--green); }
+  .test-result.err { background: rgba(225,112,85,0.1); color: var(--red); }
+
+  .empty-state { text-align: center; padding: 40px; color: var(--text2); }
+  .empty-state p { margin-top: 8px; }
+
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; padding: 12px 20px;
+    border-radius: var(--radius); z-index: 200;
+    animation: slideUp 0.3s ease;
+  }
+  .toast.success { background: var(--green); color: var(--bg); }
+  .toast.error { background: var(--red); color: white; }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .loading { opacity: 0.6; pointer-events: none; }
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .usage-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .stat-card { background: var(--surface2); padding: 16px; border-radius: var(--radius); text-align: center; }
+  .stat-value { font-size: 24px; font-weight: 700; }
+  .stat-label { font-size: 12px; color: var(--text2); margin-top: 4px; }
+
+  @media (max-width: 640px) {
+    .form-row { flex-direction: column; }
+    .provider-item { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .provider-status { margin-left: 0; width: 100%; justify-content: flex-end; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>AI Playground</h1>
+  <p class="subtitle">Manage your AI providers, models, and API keys</p>
+
+  <div class="tab-bar">
+    <div class="tab active" data-tab="providers">Providers</div>
+    <div class="tab" data-tab="chat">Chat</div>
+    <div class="tab" data-tab="usage">Usage</div>
+  </div>
+
+  <!-- Providers Tab -->
+  <div id="tab-providers" class="tab-content active">
+    <div class="card">
+      <div class="card-header">
+        <h2>Configured Providers</h2>
+        <button class="btn btn-primary" onclick="openAddModal()">+ Add Provider</button>
+      </div>
+      <div id="provider-list">
+        <div class="empty-state">
+          <div style="font-size:48px;">🤖</div>
+          <p>No AI providers configured yet.</p>
+          <p style="margin-top:4px;">Add your first provider to start using AI features.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Available Providers</h2>
+      </div>
+      <div class="provider-grid" id="available-providers" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Tab -->
+  <div id="tab-chat" class="tab-content" style="display:none">
+    <div class="card">
+      <div class="card-header">
+        <h2>Test Chat</h2>
+      </div>
+      <div class="form-group">
+        <label>Model</label>
+        <select id="chat-model"><option value="">Select a model...</option></select>
+      </div>
+      <div class="form-group">
+        <label>System Prompt (optional)</label>
+        <input id="chat-system" placeholder="You are a helpful assistant..." />
+      </div>
+      <div class="form-group">
+        <label>Message</label>
+        <input id="chat-message" placeholder="Type your message..." onkeydown="if(event.key==='Enter')sendChat()" />
+      </div>
+      <button class="btn btn-primary" onclick="sendChat()">Send</button>
+      <div id="chat-response" class="test-result" style="margin-top:12px;white-space:pre-wrap"></div>
+    </div>
+  </div>
+
+  <!-- Usage Tab -->
+  <div id="tab-usage" class="tab-content" style="display:none">
+    <div class="card">
+      <div class="card-header">
+        <h2>Usage Statistics</h2>
+      </div>
+      <div class="usage-grid" id="usage-summary"></div>
+      <div id="usage-detail"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="provider-modal">
+  <div class="modal">
+    <h3 id="modal-title">Add Provider</h3>
+    <input type="hidden" id="edit-provider" />
+    <div class="form-group">
+      <label>Provider</label>
+      <select id="provider-select"></select>
+    </div>
+    <div class="form-group">
+      <label>API Key</label>
+      <div class="api-key-input">
+        <input type="password" id="api-key" placeholder="sk-..." />
+        <button class="api-key-toggle" onclick="toggleKey()">👁</button>
+      </div>
+    </div>
+    <div class="form-group" id="base-url-group" style="display:none">
+      <label>Base URL (optional)</label>
+      <input id="base-url" placeholder="http://localhost:11434" />
+    </div>
+    <div class="form-group">
+      <label>Default Model</label>
+      <select id="default-model"></select>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProvider()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const GATEWAY = localStorage.getItem('strata_gateway') || 'http://localhost:8000';
+
+let providers = [];
+let allModels = [];
+
+function $(id) { return document.getElementById(id); }
+
+function toast(msg, type = 'success') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+async function api(method, path, body) {
+  const token = localStorage.getItem('strata_token');
+  const h = { 'Content-Type': 'application/json' };
+  if (token) h['Authorization'] = `Bearer ${token}`;
+  const opts = { method, headers: h };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(`${GATEWAY}${path}`, opts);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+// Providere select
+function getLocalProviders() {
+  return [
+    { id: 'openai', name: 'OpenAI', needsKey: true, needsURL: false },
+    { id: 'anthropic', name: 'Anthropic', needsKey: true, needsURL: false },
+    { id: 'gemini', name: 'Google Gemini', needsKey: true, needsURL: false },
+    { id: 'groq', name: 'Groq', needsKey: true, needsURL: false },
+    { id: 'openrouter', name: 'OpenRouter', needsKey: true, needsURL: false },
+    { id: 'cohere', name: 'Cohere', needsKey: true, needsURL: false },
+    { id: 'mistral', name: 'Mistral', needsKey: true, needsURL: false },
+    { id: 'deepseek', name: 'DeepSeek', needsKey: true, needsURL: false },
+    { id: 'ollama', name: 'Ollama (Local)', needsKey: false, needsURL: true },
+    { id: 'lmstudio', name: 'LM Studio (Local)', needsKey: false, needsURL: true },
+    { id: 'localai', name: 'LocalAI (Local)', needsKey: false, needsURL: true },
+    { id: 'vllm', name: 'vLLM (Local)', needsKey: false, needsURL: true },
+  ];
+}
+
+// Render
+async function loadProviders() {
+  try {
+    providers = await api('GET', '/v1/ai/providers');
+  } catch (e) {
+    providers = [];
+  }
+  renderProviders();
+  renderAvailable();
+  updateModelSelect();
+}
+
+function renderProviders() {
+  const el = $('provider-list');
+  if (providers.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div style="font-size:48px;">🔑</div><p>No AI providers configured yet.</p><p style="margin-top:4px;">Click "Add Provider" to get started.</p></div>`;
+    return;
+  }
+  el.innerHTML = '<div class="provider-grid">' + providers.map(p => `
+    <div class="provider-item">
+      <div class="provider-info">
+        <div class="provider-name">
+          ${p.is_primary ? '⭐ ' : ''}${p.provider}
+          ${!p.enabled ? '<span style="color:var(--text2);font-size:12px">(disabled)</span>' : ''}
+        </div>
+        <div class="provider-model">${p.default_model || 'No default model'}</div>
+      </div>
+      <div class="provider-status">
+        <div class="status-dot ${p.enabled ? (p.is_primary ? 'primary' : 'enabled') : 'error'}"></div>
+        <button class="btn btn-outline btn-sm" onclick="editProvider('${p.provider}')">Edit</button>
+        <button class="btn btn-outline btn-sm" onclick="testProvider('${p.provider}')">Test</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteProvider('${p.provider}')">✕</button>
+      </div>
+    </div>
+  `).join('') + '</div>';
+}
+
+function renderAvailable() {
+  const configured = new Set(providers.map(p => p.provider.toLowerCase()));
+  const el = $('available-providers');
+  el.innerHTML = getLocalProviders()
+    .filter(lp => !configured.has(lp.id))
+    .map(lp => `<div class="provider-item" style="cursor:pointer;opacity:0.7" onclick="openAddModal('${lp.id}')">
+      <div class="provider-info">
+        <div class="provider-name">${lp.name}</div>
+      </div>
+      <span style="color:var(--text2);font-size:20px">+</span>
+    </div>`).join('');
+}
+
+// Modal
+function openAddModal(prefill) {
+  $('modal-title').textContent = 'Add Provider';
+  $('edit-provider').value = '';
+  $('api-key').value = '';
+  $('base-url').value = '';
+
+  const sel = $('provider-select');
+  sel.innerHTML = getLocalProviders().map(lp =>
+    `<option value="${lp.id}">${lp.name}</option>`
+  ).join('');
+  if (prefill) sel.value = prefill;
+  updateBaseURLVisibility();
+  updateDefaultModels();
+  $('provider-modal').classList.add('active');
+}
+
+function editProvider(name) {
+  const p = providers.find(x => x.provider.toLowerCase() === name.toLowerCase());
+  if (!p) return;
+  $('modal-title').textContent = `Edit ${p.provider}`;
+  $('edit-provider').value = p.provider.toLowerCase();
+  $('api-key').value = '';
+  $('base-url').value = p.base_url || '';
+
+  const sel = $('provider-select');
+  sel.innerHTML = getLocalProviders().map(lp =>
+    `<option value="${lp.id}" ${lp.id===p.provider.toLowerCase()?'selected':''}>${lp.name}</option>`
+  ).join('');
+  sel.disabled = true;
+  updateBaseURLVisibility();
+  updateDefaultModels(p.default_model);
+  $('provider-modal').classList.add('active');
+}
+
+function closeModal() {
+  $('provider-modal').classList.remove('active');
+  $('provider-select').disabled = false;
+}
+
+function toggleKey() {
+  const inp = $('api-key');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+$('provider-select').onchange = function() {
+  updateBaseURLVisibility();
+  updateDefaultModels();
+};
+
+function updateBaseURLVisibility() {
+  const val = $('provider-select').value;
+  const lp = getLocalProviders().find(x => x.id === val);
+  $('base-url-group').style.display = lp?.needsURL ? 'block' : 'none';
+}
+
+async function updateDefaultModels(selected) {
+  const sel = $('default-model');
+  try {
+    const models = await api('GET', `/v1/ai/models?provider=${$('provider-select').value}`);
+    sel.innerHTML = models.map(m => `<option value="${m.id}" ${m.id===selected?'selected':''}>${m.name} (${m.id})</option>`).join('');
+  } catch {
+    sel.innerHTML = '<option value="">No models available</option>';
+  }
+}
+
+// CRUD
+async function saveProvider() {
+  const edit = $('edit-provider').value;
+  const provider = $('provider-select').value;
+  const apiKey = $('api-key').value;
+  const baseURL = $('base-url').value;
+  const defaultModel = $('default-model').value;
+
+  const btn = document.querySelector('#provider-modal .btn-primary');
+  btn.classList.add('loading');
+  btn.textContent = 'Saving...';
+
+  try {
+    if (edit) {
+      const body = {};
+      if (apiKey) body.api_key = apiKey;
+      if (baseURL) body.base_url = baseURL;
+      if (defaultModel) body.default_model = defaultModel;
+      await api('PUT', `/v1/ai/providers/${edit}`, body);
+      toast('Provider updated');
+    } else {
+      await api('POST', '/v1/ai/providers', {
+        provider, api_key: apiKey, base_url: baseURL, default_model: defaultModel,
+      });
+      toast('Provider added');
+    }
+    closeModal();
+    loadProviders();
+  } catch (e) {
+    toast(e.message, 'error');
+  } finally {
+    btn.classList.remove('loading');
+    btn.textContent = 'Save';
+  }
+}
+
+async function deleteProvider(name) {
+  if (!confirm(`Delete ${name}?`)) return;
+  try {
+    await api('DELETE', `/v1/ai/providers/${name}`);
+    toast('Provider deleted');
+    loadProviders();
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
+async function testProvider(name) {
+  try {
+    const res = await api('POST', `/v1/ai/providers/${name}/test`);
+    toast(`${name}: ${res.status === 'ok' ? 'Connected in ' + res.latency_ms + 'ms' : res.message}`,
+      res.status === 'ok' ? 'success' : 'error');
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
+function updateModelSelect() {
+  const sel = $('chat-model');
+  if (allModels.length === 0) {
+    api('GET', '/v1/ai/models').then(models => {
+      allModels = models;
+      sel.innerHTML = models.map(m => `<option value="${m.id}">${m.provider}: ${m.name}</option>`).join('');
+    }).catch(() => {});
+  } else {
+    sel.innerHTML = allModels.map(m => `<option value="${m.id}">${m.provider}: ${m.name}</option>`).join('');
+  }
+}
+
+async function sendChat() {
+  const model = $('chat-model').value;
+  const system = $('chat-system').value;
+  const message = $('chat-message').value;
+  if (!model || !message) { toast('Select a model and enter a message', 'error'); return; }
+
+  const messages = [];
+  if (system) messages.push({ role: 'system', content: system });
+  messages.push({ role: 'user', content: message });
+
+  $('chat-response').textContent = 'Waiting for response...';
+  try {
+    const res = await api('POST', '/v1/ai/chat', { model, messages });
+    const choice = res.choices?.[0];
+    $('chat-response').innerHTML = `<div class="ok">${choice?.message?.content || '(no response)'}</div>
+      <div style="margin-top:8px;font-size:12px;color:var(--text2)">
+        Provider: ${res.provider} · Model: ${res.model} · ${res.latency_ms}ms
+        ${res.usage ? `· ${res.usage.total_tokens} tokens` : ''}
+      </div>`;
+  } catch (e) {
+    $('chat-response').innerHTML = `<div class="err">${e.message}</div>`;
+  }
+}
+
+// Usage
+async function loadUsage() {
+  try {
+    const stats = await api('GET', '/v1/ai/usage?limit=50');
+    const summary = $('usage-summary');
+    const totalReq = stats.reduce((s, x) => s + x.total_requests, 0);
+    const totalTok = stats.reduce((s, x) => s + x.total_tokens, 0);
+    const totalCost = stats.reduce((s, x) => s + x.estimated_cost, 0);
+    const avgLat = stats.length > 0 ? stats.reduce((s, x) => s + x.avg_latency_ms, 0) / stats.length : 0;
+
+    summary.innerHTML = `
+      <div class="stat-card"><div class="stat-value">${totalReq}</div><div class="stat-label">Total Requests</div></div>
+      <div class="stat-card"><div class="stat-value">${(totalTok/1000).toFixed(1)}K</div><div class="stat-label">Total Tokens</div></div>
+      <div class="stat-card"><div class="stat-value">$${totalCost.toFixed(4)}</div><div class="stat-label">Estimated Cost</div></div>
+      <div class="stat-card"><div class="stat-value">${avgLat.toFixed(0)}ms</div><div class="stat-label">Avg Latency</div></div>
+    `;
+
+    const detail = $('usage-detail');
+    if (stats.length > 0) {
+      detail.innerHTML = '<div class="provider-grid">' + stats.map(s => `
+        <div class="provider-item" style="flex-direction:column;align-items:stretch">
+          <div style="display:flex;justify-content:space-between">
+            <span class="provider-name">${s.provider} / ${s.model}</span>
+            <span style="font-size:12px;color:var(--text2)">${s.total_requests} requests</span>
+          </div>
+          <div style="display:flex;gap:16px;margin-top:8px;font-size:12px;color:var(--text2)">
+            <span>✅ ${s.successful_requests}</span>
+            <span>❌ ${s.failed_requests}</span>
+            <span>⚡ ${s.avg_latency_ms.toFixed(0)}ms avg</span>
+            <span>📊 ${s.total_tokens} tokens</span>
+            <span>💰 $${s.estimated_cost.toFixed(4)}</span>
+          </div>
+        </div>`).join('') + '</div>';
+    } else {
+      detail.innerHTML = '<div class="empty-state"><p>No usage data yet. Start chatting to see statistics.</p></div>';
+    }
+  } catch (e) {
+    $('usage-detail').innerHTML = `<div class="test-result err">${e.message}</div>`;
+  }
+}
+
+// Tabs
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.onclick = function() {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = 'none');
+    this.classList.add('active');
+    const id = this.dataset.tab;
+    const el = $(`tab-${id}`);
+    if (el) el.style.display = 'block';
+    if (id === 'usage') loadUsage();
+    if (id === 'chat') updateModelSelect();
+  };
+});
+
+// Init
+loadProviders();
+
+// Gateway URL config
+const gw = prompt('Strata API Gateway URL:', localStorage.getItem('strata_gateway') || 'http://localhost:8000');
+if (gw) { localStorage.setItem('strata_gateway', gw); location.reload(); }
+</script>
+</body>
+</html>

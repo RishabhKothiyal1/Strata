@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 
@@ -174,12 +176,28 @@ var aiDocumentsDeleteCmd = &cobra.Command{
 	},
 }
 
+var aiEncryptionKeyCmd = &cobra.Command{
+	Use:   "encryption-key",
+	Short: "Generate a new AES-256 encryption key",
+	Run: func(cmd *cobra.Command, args []string) {
+		key := make([]byte, 32)
+		if _, err := rand.Read(key); err != nil {
+			output.Fatal(fmt.Errorf("failed to generate key: %w", err))
+		}
+		output.Success("AES-256-GCM Encryption Key (64 hex chars)")
+		fmt.Println(hex.EncodeToString(key))
+		fmt.Println()
+		output.Info("Add this to your .env file as ENCRYPTION_KEY=<key>")
+	},
+}
+
 func init() {
 	aiCmd.AddCommand(aiCollectionsCmd)
 	aiCmd.AddCommand(aiCreateCollectionCmd)
 	aiCmd.AddCommand(aiDeleteCollectionCmd)
 	aiCmd.AddCommand(aiSearchCmd)
 	aiCmd.AddCommand(aiDocumentsCmd)
+	aiCmd.AddCommand(aiEncryptionKeyCmd)
 
 	aiDocumentsCmd.AddCommand(aiDocumentsListCmd)
 	aiDocumentsCmd.AddCommand(aiDocumentsAddCmd)

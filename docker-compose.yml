@@ -214,6 +214,7 @@ services:
     environment:
       PORT: ":8086"
       DATABASE_URL: "postgres://strata_admin:${POSTGRES_PASSWORD:-strata_secure_pass_123}@strata-postgres:5432/strata?sslmode=disable"
+      ENCRYPTION_KEY: "${ENCRYPTION_KEY}"
     depends_on:
       postgres:
         condition: service_healthy

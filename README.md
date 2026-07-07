@@ -330,6 +330,38 @@ await client.functions.deploy('greet', `
 const { body } = await client.functions.invoke('greet', { name: 'World' });
 console.log(body.msg); // "Hello World"
 
+// ── AI Providers (BYOK) ───────────────────────────────────────────────────────
+// Add your own API key
+await client.ai.providers.create({
+  provider: 'openai',
+  api_key: 'sk-...',
+  default_model: 'gpt-4o',
+});
+
+// List configured providers
+const providers = await client.ai.providers.list();
+
+// Test connection
+const { status, latency_ms } = await client.ai.providers.test('openai');
+
+// ── AI Chat ───────────────────────────────────────────────────────────────────
+// Auto-routes to the correct provider based on model selection
+const result = await client.ai.chat.chat({
+  model: 'gpt-4o',
+  messages: [
+    { role: 'system', content: 'You are a helpful assistant.' },
+    { role: 'user', content: 'What is Strata?' },
+  ],
+});
+console.log(result.choices[0].message.content);
+
+// ── AI Model Registry ─────────────────────────────────────────────────────────
+// List all available models
+const models = await client.ai.models.list();
+
+// ── AI Usage Statistics ───────────────────────────────────────────────────────
+const stats = await client.ai.usage.stats();
+
 // ── AI / Vector Search ────────────────────────────────────────────────────────
 // Create a collection and index documents
 await client.ai.createCollection('docs', 'My knowledge base');
