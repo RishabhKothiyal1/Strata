@@ -1,6 +1,7 @@
 package output
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -42,6 +43,11 @@ func Section(title string) {
 	fmt.Println()
 	Bold.Println(title)
 	Dim.Println(strings.Repeat("─", len(title)))
+}
+
+func JSON(v interface{}) {
+	data, _ := json.MarshalIndent(v, "", "  ")
+	fmt.Println(string(data))
 }
 
 func Fatal(err error) {

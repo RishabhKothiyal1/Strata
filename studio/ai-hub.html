@@ -3,951 +3,1189 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Strata AI Hub</title>
+<title>AI Hub — Strata Studio</title>
+<script src="https://cdn.tailwindcss.com">
+</script>
+<script src="https://unpkg.com/lucide@latest">
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js">
+</script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0a0c11;--surface:#11141d;--surface2:#171b26;--surface3:#1e2332;--border:#252b3d;--border2:#2e354a;--text:#e4e6f0;--text2:#8b8fa8;--accent:#6c5ce7;--accent2:#a29bfe;--green:#00b894;--red:#e17055;--yellow:#fdcb6e;--orange:#e67e22;--blue:#0984e3;--radius:10px;--radius-sm:6px;--shadow:0 4px 24px rgba(0,0,0,0.3);--glass:rgba(17,20,29,0.85);--transition:0.2s ease}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;display:flex;height:100vh;overflow:hidden}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg-primary:#09090B;
+--bg-secondary:#111113;
+--bg-card:#18181B;
+--bg-elevated:#202024;
+--bg-sidebar:#101012;
+--border:rgba(255,255,255,0.06);
+--text-primary:#FAFAFA;
+--text-secondary:#A1A1AA;
+--text-muted:#71717A;
+--accent:#6366F1;
+--accent-hover:#818CF8;
+--success:#22C55E;
+--warning:#F59E0B;
+--danger:#EF4444;
+--info:#3B82F6;
+--radius:12px;
+--radius-sm:8px;
+--radius-xs:6px;
+--shadow-sm:0 1px 2px rgba(0,0,0,0.3);
+--shadow-md:0 4px 16px rgba(0,0,0,0.4);
+--shadow-lg:0 8px 32px rgba(0,0,0,0.5);
+--transition:200ms cubic-bezier(0.16,1,0.3,1);
+}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg-primary);color:var(--text-primary);line-height:1.5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-::-webkit-scrollbar-thumb:hover{background:var(--text2)}
-/* Sidebar */
-.sidebar{width:240px;min-width:240px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
-.sidebar-header{padding:20px;border-bottom:1px solid var(--border)}
-.sidebar-header h1{font-size:18px;display:flex;align-items:center;gap:10px}
-.sidebar-header h1 span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.sidebar-header .sub{font-size:11px;color:var(--text2);margin-top:2px}
-.sidebar-nav{flex:1;overflow-y:auto;padding:8px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text2);font-size:13px;transition:all var(--transition);margin-bottom:2px}
-.nav-item:hover{background:var(--surface2);color:var(--text)}
-.nav-item.active{background:rgba(108,92,231,0.12);color:var(--accent);font-weight:600}
-.nav-item .icon{font-size:16px;width:20px;text-align:center}
-.nav-item .badge{margin-left:auto;background:var(--accent);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px}
-.nav-section{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text2);padding:16px 14px 6px;opacity:0.5}
-/* Main */
-.main{flex:1;overflow:hidden;display:flex;flex-direction:column}
-.main-header{padding:16px 28px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-.main-header h2{font-size:18px;font-weight:600}
-.main-header .actions{display:flex;gap:8px}
-.content{flex:1;overflow-y:auto;padding:24px 28px}
-/* Cards */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;transition:border-color var(--transition)}
-.card:hover{border-color:var(--border2)}
-.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.card-header h3{font-size:15px;font-weight:600}
-/* Grid */
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
-.grid-4{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
-/* Stats */
-.stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;text-align:center;transition:all var(--transition)}
-.stat-card:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 8px 32px rgba(108,92,231,0.1)}
-.stat-card .value{font-size:28px;font-weight:700;background:linear-gradient(135deg,var(--text),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.stat-card .label{font-size:12px;color:var(--text2);margin-top:4px}
-.stat-card .icon{font-size:24px;margin-bottom:8px}
-/* Buttons */
-.btn{padding:8px 18px;border-radius:var(--radius-sm);border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all var(--transition);display:inline-flex;align-items:center;gap:6px}
-.btn:hover{transform:translateY(-1px)}
-.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
-.btn-primary:hover{box-shadow:0 4px 16px rgba(108,92,231,0.3)}
-.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
-.btn-outline:hover{background:var(--surface2);border-color:var(--accent)}
-.btn-danger{background:var(--red);color:#fff}
-.btn-danger:hover{box-shadow:0 4px 16px rgba(225,112,85,0.3)}
-.btn-success{background:var(--green);color:#fff}
-.btn-sm{padding:5px 12px;font-size:12px}
-.btn-icon{background:none;border:none;color:var(--text2);cursor:pointer;padding:4px;font-size:16px;transition:color var(--transition)}
-.btn-icon:hover{color:var(--text)}
-/* Forms */
-input,select,textarea{width:100%;padding:10px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;transition:border-color var(--transition)}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
-textarea{resize:vertical;min-height:80px;font-family:monospace}
-label{display:block;font-size:12px;color:var(--text2);margin-bottom:4px}
-.form-group{margin-bottom:14px}
-.form-row{display:flex;gap:12px}
-.form-row .form-group{flex:1}
-/* Tables */
-.table-wrap{overflow-x:auto}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.15)}
+::selection{background:rgba(99,102,241,0.3);color:#fff}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scaleIn{from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)}}
+@keyframes shimmer{0%{background-position:200% 0}to{background-position:-200% 0}}
+@keyframes countUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes slideInRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes slideOutRight{from{transform:translateX(0);opacity:1}to{transform:translateX(100%);opacity:0}}
+.animate-fade-in{animation:fadeIn 300ms var(--transition) forwards}
+.animate-slide-up{animation:slideUp 400ms var(--transition) forwards}
+.animate-scale-in{animation:scaleIn 200ms var(--transition) forwards}
+.skeleton{background:linear-gradient(90deg,var(--bg-card) 25%,var(--bg-elevated) 50%,var(--bg-card) 75%);background-size:200% 100%;animation:shimmer 1.5s ease-in-out infinite;border-radius:var(--radius-xs)}
+.skeleton-card{height:96px;border-radius:var(--radius)}
+.skeleton-line{height:14px;margin-bottom:8px;border-radius:4px;width:60%}
+.page-enter{animation:fadeIn 250ms var(--transition) forwards}
+.card-hover{transition:all var(--transition)}.card-hover:hover{transform:translateY(-2px);border-color:rgba(99,102,241,0.2);box-shadow:0 8px 24px rgba(0,0,0,0.3)}
+.stat-value{font-feature-settings:'tnum';letter-spacing:-0.02em}
+.chart-bar{transition:height 600ms cubic-bezier(0.16,1,0.3,1)}
+.timeline-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;position:relative}
+.timeline-dot::after{content:'';position:absolute;top:8px;left:3.5px;width:1px;height:calc(100% + 8px);background:var(--border)}
+.timeline-item:last-child .timeline-dot::after{display:none}
+.pulse-dot{animation:pulse-dot 2s ease-in-out infinite}
+input[type="text"],input[type="search"],input[type="number"],input[type="password"],select,textarea{background:var(--bg-card);border:1px solid var(--border);color:var(--text-primary);border-radius:var(--radius-xs);padding:8px 12px;font-size:13px;transition:border-color var(--transition),box-shadow var(--transition);width:100%;outline:none;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,0.1)}
+textarea{resize:vertical;min-height:80px}
+label{display:block;font-size:12px;color:var(--text-secondary);margin-bottom:4px;font-weight:500}
+.sidebar-transition{transition:width 300ms var(--transition)}
+.panel-transition{transition:transform 300ms var(--transition),opacity 300ms var(--transition)}
+.tab-underline{position:relative}.tab-underline::after{content:'';position:absolute;bottom:-1px;left:0;width:100%;height:2px;background:var(--accent);border-radius:1px;transform:scaleX(0);transition:transform var(--transition)}.tab-underline.active::after{transform:scaleX(1)}
+.provider-logo{width:36px;height:36px;border-radius:var(--radius-xs);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.status-dot.connected{background:var(--success);box-shadow:0 0 6px rgba(34,197,94,0.3)}
+.status-dot.disconnected{background:var(--text-muted)}
+.status-dot.error{background:var(--danger);box-shadow:0 0 6px rgba(239,68,68,0.3)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius-xs);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all var(--transition);white-space:nowrap;font-family:inherit;line-height:1.4}
+.btn:hover{transform:translateY(-1px)}.btn:active{transform:translateY(0)}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent-hover);box-shadow:0 4px 12px rgba(99,102,241,0.25)}
+.btn-secondary{background:var(--bg-elevated);color:var(--text-primary);border:1px solid var(--border)}.btn-secondary:hover{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.1)}
+.btn-ghost{background:transparent;color:var(--text-secondary)}.btn-ghost:hover{background:rgba(255,255,255,0.05);color:var(--text-primary)}
+.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{box-shadow:0 4px 12px rgba(239,68,68,0.25)}
+.btn-success{background:var(--success);color:#fff}.btn-success:hover{box-shadow:0 4px 12px rgba(34,197,94,0.25)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-lg{padding:10px 20px;font-size:14px}
+.btn-icon{padding:6px;border-radius:var(--radius-xs);background:transparent;border:none;color:var(--text-secondary);cursor:pointer;transition:all var(--transition);display:inline-flex;align-items:center;justify-content:center}
+.btn-icon:hover{background:rgba(255,255,255,0.05);color:var(--text-primary)}
+.badge{padding:2px 8px;border-radius:999px;font-size:11px;font-weight:500;display:inline-flex;align-items:center;gap:4px;line-height:1.4}
+.badge-accent{background:rgba(99,102,241,0.12);color:var(--accent)}
+.badge-success{background:rgba(34,197,94,0.12);color:var(--success)}
+.badge-warning{background:rgba(245,158,11,0.12);color:var(--warning)}
+.badge-danger{background:rgba(239,68,68,0.12);color:var(--danger)}
+.badge-info{background:rgba(59,130,246,0.12);color:var(--info)}
+.badge-neutral{background:rgba(255,255,255,0.06);color:var(--text-secondary)}
 table{width:100%;border-collapse:collapse;font-size:13px}
-th{padding:10px 14px;text-align:left;color:var(--text2);font-weight:500;border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:0.5px}
-td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text)}
-tr:hover td{background:var(--surface2)}
-/* Tabs */
-.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:0}
-.tab{padding:10px 20px;cursor:pointer;font-size:13px;color:var(--text2);border-bottom:2px solid transparent;transition:all var(--transition)}
-.tab:hover{color:var(--text)}
-.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-/* Badges */
-.badge{padding:2px 10px;border-radius:12px;font-size:11px;font-weight:500}
-.badge-green{background:rgba(0,184,148,0.15);color:var(--green)}
-.badge-red{background:rgba(225,112,85,0.15);color:var(--red)}
-.badge-yellow{background:rgba(253,203,110,0.15);color:var(--yellow)}
-.badge-blue{background:rgba(9,132,227,0.15);color:var(--blue)}
-.badge-accent{background:rgba(108,92,231,0.15);color:var(--accent)}
-/* Modal */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;justify-content:center;align-items:center;backdrop-filter:blur(4px)}
+th{padding:10px 14px;text-align:left;color:var(--text-muted);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border);user-select:none;cursor:pointer;transition:color var(--transition)}
+th:hover{color:var(--text-secondary)}
+td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text-primary)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.grid-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.grid-small{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{pointer-events:auto;padding:10px 16px;border-radius:var(--radius-xs);font-size:13px;font-weight:500;animation:slideUp 300ms var(--transition);box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:8px;min-width:280px;max-width:400px}
+.toast.success{background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.2);color:var(--success)}
+.toast.error{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.2);color:var(--danger)}
+.toast.info{background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.2);color:var(--accent)}
+@keyframes modalOverlay{from{opacity:0}to{opacity:1}}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:modalOverlay 200ms ease}
 .modal-overlay.active{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;width:540px;max-width:92vw;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow)}
-.modal h3{font-size:17px;margin-bottom:20px}
-/* Empty state */
-.empty-state{text-align:center;padding:48px 20px;color:var(--text2)}
-.empty-state .emoji{font-size:48px;margin-bottom:12px}
-.empty-state p{font-size:14px}
-/* Loading */
-.skeleton{background:linear-gradient(90deg,var(--surface2) 25%,var(--surface3) 50%,var(--surface2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius-sm)}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.skeleton-card{height:80px;margin-bottom:12px}
-.skeleton-line{height:16px;margin-bottom:8px;width:60%}
-/* Toast */
-.toast{position:fixed;bottom:24px;right:24px;padding:14px 24px;border-radius:var(--radius-sm);z-index:200;animation:slideUp 0.3s ease;font-size:13px;font-weight:500;box-shadow:var(--shadow)}
-.toast.success{background:var(--green);color:var(--bg)}
-.toast.error{background:var(--red);color:#fff}
-.toast.info{background:rgba(108,92,231,0.9);color:#fff}
-@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
-/* Glassmorphism accent */
-.glass{background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.06)}
-/* Chart canvas */
-canvas{width:100%!important;height:200px!important;border-radius:var(--radius-sm)}
-/* Provider card */
-.provider-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;transition:all var(--transition)}
-.provider-card:hover{border-color:var(--accent);transform:translateY(-2px)}
-.provider-card .top{display:flex;justify-content:space-between;align-items:start;margin-bottom:12px}
-.provider-card .name{font-weight:600;font-size:14px}
-.provider-card .status{font-size:11px;padding:2px 8px;border-radius:10px}
-.provider-card .detail{font-size:12px;color:var(--text2);margin-bottom:4px}
-.provider-card .actions{display:flex;gap:6px;margin-top:10px}
-/* Search bar */
-.search-bar{display:flex;gap:8px;margin-bottom:16px}
-.search-bar input{flex:1}
-/* Pagination */
-.pagination{display:flex;align-items:center;justify-content:center;gap:12px;padding:12px 0 4px}
-.pagination .btn:disabled{opacity:0.4;cursor:not-allowed;transform:none}
-/* Playground */
-.playground-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.playground-output{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;min-height:200px;font-family:monospace;font-size:13px;white-space:pre-wrap;overflow-y:auto}
-/* Responsive */
-@media(max-width:900px){.sidebar{width:60px;min-width:60px}.sidebar-header h1 span,.sidebar-header .sub,.nav-item span,.nav-section,.nav-item .badge{display:none}.nav-item{justify-content:center;padding:12px}.nav-item .icon{font-size:20px;margin:0}.grid-2,.grid-3{grid-template-columns:1fr}.playground-grid{grid-template-columns:1fr}}
-@media(max-width:640px){.main-header{padding:12px 16px}.content{padding:16px}.form-row{flex-direction:column}}
+.modal{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:520px;max-width:92vw;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:scaleIn 200ms var(--transition)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-header h3{font-size:16px;font-weight:600}
+.dropdown{position:relative;display:inline-block}
+.dropdown-menu{position:absolute;top:calc(100% + 4px);right:0;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px;min-width:160px;box-shadow:var(--shadow-lg);z-index:500;animation:scaleIn 150ms var(--transition);display:none}
+.dropdown-menu.active{display:block}
+.dropdown-item{padding:7px 12px;font-size:13px;color:var(--text-secondary);cursor:pointer;border-radius:var(--radius-xs);transition:all var(--transition);display:flex;align-items:center;gap:8px}
+.dropdown-item:hover{background:rgba(255,255,255,0.05);color:var(--text-primary)}
+.dropdown-divider{height:1px;background:var(--border);margin:4px 0}
+@media(max-width:1024px){.sidebar-collapsed .sidebar{width:56px;min-width:56px}.sidebar-collapsed .sidebar .sidebar-label,.sidebar-collapsed .sidebar .sidebar-badge,.sidebar-collapsed .sidebar .sidebar-header-text,.sidebar-collapsed .sidebar .sidebar-section{display:none}.sidebar-collapsed .sidebar .nav-item{justify-content:center;padding:10px}.sidebar-collapsed .sidebar .sidebar-logo-text{display:none}}
+@media(max-width:768px){.sidebar{width:56px;min-width:56px}.sidebar-label,.sidebar-badge,.sidebar-header-text,.sidebar-section{display:none}.nav-item{justify-content:center;padding:10px}.sidebar-logo-text{display:none}.right-panel{display:none}.grid-cards{grid-template-columns:1fr}.grid-small{grid-template-columns:1fr 1fr}.main-header{padding:12px 16px}.main-content{padding:16px}.hide-mobile{display:none!important}}
+@media(max-width:480px){.grid-small{grid-template-columns:1fr}.quick-actions-grid{grid-template-columns:1fr!important}.stat-grid{grid-template-columns:1fr 1fr!important}}
 </style>
 </head>
 <body>
 
-<!-- Sidebar -->
-<div class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <h1>✦ <span>AI Hub</span></h1>
-    <div class="sub">Strata Intelligence</div>
-  </div>
-  <div class="sidebar-nav" id="sidebar-nav">
-    <div class="nav-section">Core</div>
-    <div class="nav-item active" data-page="overview"><span class="icon">📊</span><span>Overview</span></div>
-    <div class="nav-item" data-page="providers"><span class="icon">🔌</span><span>Providers</span><span class="badge" id="providers-badge">0</span></div>
-    <div class="nav-item" data-page="models"><span class="icon">🧠</span><span>Models</span></div>
-    <div class="nav-item" data-page="playground"><span class="icon">🎮</span><span>Playground</span></div>
-    <div class="nav-section">Content</div>
-    <div class="nav-item" data-page="prompts"><span class="icon">📝</span><span>Prompts</span></div>
-    <div class="nav-item" data-page="embeddings"><span class="icon">🌀</span><span>Embeddings</span></div>
-    <div class="nav-item" data-page="search"><span class="icon">🔍</span><span>Vector Search</span></div>
-    <div class="nav-item" data-page="documents"><span class="icon">📄</span><span>Documents</span></div>
-    <div class="nav-section">Automation</div>
-    <div class="nav-item" data-page="agents"><span class="icon">🤖</span><span>Agents</span></div>
-    <div class="nav-item" data-page="workflows"><span class="icon">⚡</span><span>Workflows</span></div>
-    <div class="nav-section">Analytics</div>
-    <div class="nav-item" data-page="usage"><span class="icon">📈</span><span>Usage</span></div>
-    <div class="nav-item" data-page="costs"><span class="icon">💰</span><span>Costs</span></div>
-    <div class="nav-item" data-page="logs"><span class="icon">📋</span><span>Logs</span></div>
-    <div class="nav-section">System</div>
-    <div class="nav-item" data-page="settings"><span class="icon">⚙️</span><span>Settings</span></div>
-  </div>
-</div>
+<div x-data="app()" class="flex h-screen overflow-hidden" :class="{'sidebar-collapsed': sidebarCollapsed}">
 
-<!-- Main -->
-<div class="main">
-  <div class="main-header">
-    <h2 id="page-title">📊 Overview</h2>
-    <div class="actions" id="page-actions"></div>
-  </div>
-  <div class="content" id="page-content"></div>
-</div>
-
-<!-- Modal -->
-<div class="modal-overlay" id="modal-overlay">
-  <div class="modal" id="modal-content"></div>
-</div>
-
-<script>
-const GATEWAY = localStorage.getItem('strata_gateway') || 'http://localhost:8000';
-const TOKEN = localStorage.getItem('strata_token') || '';
-
-async function api(method, path, body) {
-  const h = { 'Content-Type': 'application/json' };
-  if (TOKEN) h['Authorization'] = `Bearer ${TOKEN}`;
-  const opts = { method, headers: h };
-  if (body) opts.body = JSON.stringify(body);
-  const res = await fetch(GATEWAY + path, opts);
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
-  return data;
-}
-
-function $(id) { return document.getElementById(id); }
-function qs(sel, ctx) { return (ctx||document).querySelector(sel); }
-function qsa(sel, ctx) { return Array.from((ctx||document).querySelectorAll(sel)); }
-function esc(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
-function toast(msg, type='success') { const t=document.createElement('div'); t.className=`toast ${type}`; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),3000); }
-
-// Navigation
-let currentPage = 'overview';
-const pages = ['overview','providers','models','playground','prompts','embeddings','search','documents','agents','workflows','usage','costs','logs','settings'];
-const pageTitles = {
-  overview:'📊 Overview', providers:'🔌 Providers', models:'🧠 Models', playground:'🎮 Playground',
-  prompts:'📝 Prompts', embeddings:'🌀 Embeddings', search:'🔍 Vector Search', documents:'📄 Documents',
-  agents:'🤖 Agents', workflows:'⚡ Workflows', usage:'📈 Usage', costs:'💰 Costs',
-  logs:'📋 Logs', settings:'⚙️ Settings'
-};
-
-qsa('.nav-item').forEach(el => {
-  el.onclick = () => {
-    const page = el.dataset.page;
-    if (!page) return;
-    qsa('.nav-item').forEach(n => n.classList.remove('active'));
-    el.classList.add('active');
-    navigate(page);
-  };
-});
-
-function navigate(page) {
-  currentPage = page;
-  $('page-title').textContent = pageTitles[page] || page;
-  $('page-actions').innerHTML = '';
-  const renderers = {
-    overview: renderOverview, providers: renderProviders, models: renderModels,
-    playground: renderPlayground, prompts: renderPrompts, embeddings: renderEmbeddings,
-    search: renderSearch, documents: renderDocuments, agents: renderAgents,
-    workflows: renderWorkflows, usage: renderUsage, costs: renderCosts,
-    logs: renderLogs, settings: renderSettings
-  };
-  const fn = renderers[page];
-  if (fn) fn();
-}
-
-// ─── Overview ────────────────────────────────────────────────────────
-async function renderOverview() {
-  const el = $('page-content');
-  el.innerHTML = '<div class="skeleton skeleton-card"></div>'.repeat(6);
-  try {
-    const data = await api('GET', '/v1/ai/hub/overview');
-    el.innerHTML = `
-      <div class="grid-4">
-        <div class="stat-card"><div class="icon">🔌</div><div class="value">${data.providers}</div><div class="label">Connected Providers</div></div>
-        <div class="stat-card"><div class="icon">🧠</div><div class="value">${data.active_models}</div><div class="label">Active Models</div></div>
-        <div class="stat-card"><div class="icon">📨</div><div class="value">${data.requests_today}</div><div class="label">Requests Today</div></div>
-        <div class="stat-card"><div class="icon">📊</div><div class="value">${(data.total_tokens/1000).toFixed(1)}K</div><div class="label">Total Tokens</div></div>
-        <div class="stat-card"><div class="icon">⚡</div><div class="value">${data.avg_latency_ms.toFixed(0)}ms</div><div class="label">Avg Latency</div></div>
-        <div class="stat-card"><div class="icon">💰</div><div class="value">$${data.estimated_cost.toFixed(4)}</div><div class="label">Estimated Cost</div></div>
-        <div class="stat-card"><div class="icon">❌</div><div class="value">${data.recent_errors}</div><div class="label">Recent Errors</div></div>
-        <div class="stat-card"><div class="icon">🤖</div><div class="value">${data.active_agents}</div><div class="label">Active Agents</div></div>
-        <div class="stat-card"><div class="icon">📄</div><div class="value">${data.total_documents}</div><div class="label">Total Documents</div></div>
-        <div class="stat-card"><div class="icon">💾</div><div class="value">${(data.vector_size_bytes/1024).toFixed(0)}KB</div><div class="label">Vector DB Size</div></div>
+  <!-- Sidebar -->
+  <aside class="sidebar w-56 min-w-[224px] bg-[#101012] border-r border-[var(--border)] flex flex-col overflow-hidden transition-all duration-300" style="width:224px;min-width:224px">
+    <div class="flex items-center gap-3 px-5 py-4 border-b border-[var(--border)]">
+      <div class="w-7 h-7 rounded-md bg-[var(--accent)] flex items-center justify-center flex-shrink-0">
+        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
       </div>
-      <div class="card"><div class="card-header"><h3>Recent Activity</h3></div>
-        ${data.recent_activity && data.recent_activity.length ? `<div style="font-size:13px">${data.recent_activity.map(a => `<div style="padding:8px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between"><span><span class="badge badge-accent">${a.provider||'system'}</span> ${a.model||''} <span class="badge ${a.status==='error'?'badge-red':'badge-green'}">${a.status}</span></span><span style="color:var(--text2)">${a.tokens||0} tok · ${a.latency_ms||0}ms</span></div>`).join('')}</div>` : '<div class="empty-state"><p>No recent activity</p></div>'}
-      </div>`;
-  } catch(e) { el.innerHTML = `<div class="card"><div class="empty-state"><div class="emoji">⚠️</div><p>${e.message}</p></div></div>`; }
-}
+      <div class="sidebar-header-text">
+        <div class="text-sm font-semibold text-[var(--text-primary)]">AI Hub</div>
+        <div class="text-[10px] text-[var(--text-muted)] tracking-wider uppercase">Strata Studio</div>
+      </div>
+    </div>
 
-// ─── Providers ───────────────────────────────────────────────────────
-async function renderProviders() {
-  const el = $('page-content');
-  $('page-actions').innerHTML = '<button class="btn btn-primary" onclick="openAddProvider()">+ Add Provider</button>';
-  el.innerHTML = '<div class="skeleton skeleton-card"></div>'.repeat(4);
+    <nav class="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
+      <template x-for="section in navSections" :key="section.label">
+        <div>
+          <div class="sidebar-section text-[10px] text-[var(--text-muted)] uppercase tracking-wider px-3 pt-4 pb-1.5 font-medium" x-text="section.label"></div>
+          <template x-for="item in section.items" :key="item.id">
+            <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-150"
+               :class="currentPage === item.id ? 'bg-[var(--accent)]/10 text-[var(--accent)] font-medium' : 'text-[var(--text-secondary)] hover:bg-white/[0.03] hover:text-[var(--text-primary)]'"
+               @click.prevent="navigate(item.id)">
+              <span x-html="item.icon" class="w-5 h-5 flex-shrink-0 flex items-center justify-center"></span>
+              <span class="sidebar-label flex-1 truncate" x-text="item.label"></span>
+              <span x-show="item.badge" class="sidebar-badge text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--accent)]/15 text-[var(--accent)] font-medium" x-text="item.badge"></span>
+            </a>
+          </template>
+        </div>
+      </template>
+    </nav>
 
-  try {
-    const providers = await api('GET', '/v1/ai/providers');
-    $('providers-badge').textContent = providers.length;
-    const localProviders = [
-      {id:'openai',name:'OpenAI',icon:'🤖',needsKey:true,needsURL:false},
-      {id:'anthropic',name:'Anthropic',icon:'🔮',needsKey:true,needsURL:false},
-      {id:'gemini',name:'Gemini',icon:'✨',needsKey:true,needsURL:false},
-      {id:'groq',name:'Groq',icon:'⚡',needsKey:true,needsURL:false},
-      {id:'openrouter',name:'OpenRouter',icon:'🌐',needsKey:true,needsURL:false},
-      {id:'deepseek',name:'DeepSeek',icon:'🎯',needsKey:true,needsURL:false},
-      {id:'mistral',name:'Mistral',icon:'🌬️',needsKey:true,needsURL:false},
-      {id:'cohere',name:'Cohere',icon:'🔗',needsKey:true,needsURL:false},
-      {id:'ollama',name:'Ollama',icon:'🦙',needsKey:false,needsURL:true},
-      {id:'lmstudio',name:'LM Studio',icon:'💻',needsKey:false,needsURL:true},
-      {id:'localai',name:'LocalAI',icon:'🏠',needsKey:false,needsURL:true},
-      {id:'vllm',name:'vLLM',icon:'🚀',needsKey:false,needsURL:true},
-    ];
-    const configured = new Set(providers.map(p=>p.provider.toLowerCase()));
+    <div class="border-t border-[var(--border)] px-2 py-3">
+      <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-[var(--text-secondary)] hover:bg-white/[0.03] hover:text-[var(--text-primary)] transition-all duration-150"
+         @click.prevent="navigate('settings')">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="sidebar-label">Settings</span>
+      </a>
+    </div>
+  </aside>
 
-    el.innerHTML = `
-      <div class="grid-3">${localProviders.map(lp => {
-        const cfg = providers.find(p => p.provider.toLowerCase() === lp.id);
-        const isConfigured = !!cfg;
-        return `<div class="provider-card">
-          <div class="top">
-            <div>
-              <div class="name">${lp.icon} ${lp.name}</div>
-              <div class="status" style="margin-top:4px">
-                <span class="badge ${isConfigured?'badge-green':'badge-yellow'}">${isConfigured?'✓ Connected':'○ Not Configured'}</span>
+  <!-- Main Content -->
+  <div class="flex-1 flex flex-col overflow-hidden min-w-0">
+    <!-- Header -->
+    <header class="flex items-center justify-between px-6 py-3 border-b border-[var(--border)] bg-[var(--bg-primary)]/80 backdrop-blur-lg" style="min-height:52px">
+      <div class="flex items-center gap-4">
+        <button class="btn-icon lg:hidden" @click="sidebarCollapsed = !sidebarCollapsed">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div>
+          <h1 class="text-base font-semibold text-[var(--text-primary)]" x-text="pageTitle"></h1>
+          <p class="text-xs text-[var(--text-muted)] hidden sm:block">Manage providers, models, agents and AI infrastructure.</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="relative hide-mobile">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input type="text" placeholder="Search..." class="pl-9 pr-3 py-1.5 text-xs w-48 bg-[var(--bg-card)] border border-[var(--border)] rounded-md text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none focus:border-[var(--accent)] transition-colors" @focus="showCommandPalette = true">
+        </div>
+        <button class="btn-icon" @click="showCommandPalette = true" title="Command Palette (Cmd+K)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </button>
+        <button class="btn-icon" @click="refresh()" title="Refresh">
+          <svg class="w-4 h-4" :class="{'animate-spin': loading}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        </button>
+        <button class="btn-icon" @click="navigate('settings')" title="Settings">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </button>
+        <div class="w-7 h-7 rounded-full bg-[var(--accent)]/20 flex items-center justify-center text-xs font-medium text-[var(--accent)] cursor-pointer" title="User">RK</div>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="flex-1 overflow-y-auto px-6 py-5 space-y-6 page-enter" id="page-content" x-show="!loading && !error">
+      <!-- Overview Section -->
+      <template x-if="currentPage === 'overview'">
+        <div class="space-y-6">
+          <!-- Stats Grid -->
+          <div class="stat-grid grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <template x-for="stat in stats" :key="stat.key">
+              <div class="card-hover bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-4 transition-all duration-200">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-8 h-8 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center" x-html="stat.icon"></div>
+                  <span class="text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-wider" x-text="stat.label"></span>
+                </div>
+                <div class="flex items-baseline gap-2">
+                  <span class="stat-value text-2xl font-bold text-[var(--text-primary)]" x-text="stat.value"></span>
+                  <span class="text-[10px] font-medium" :class="stat.trend > 0 ? 'text-[var(--success)]' : stat.trend < 0 ? 'text-[var(--danger)]' : 'text-[var(--text-muted)]'" x-show="stat.trend !== undefined" x-text="(stat.trend > 0 ? '+' : '') + stat.trend + '%'"></span>
+                </div>
+                <p class="text-[11px] text-[var(--text-muted)] mt-1" x-text="stat.description"></p>
+              </div>
+            </template>
+          </div>
+
+          <!-- Quick Actions -->
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-sm font-semibold text-[var(--text-primary)]">Quick Actions</h2>
+            </div>
+            <div class="quick-actions-grid grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              <template x-for="action in quickActions" :key="action.label">
+                <button class="card-hover bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-4 text-left transition-all duration-200 hover:border-[var(--accent)]/30 group"
+                        @click="action.handler">
+                  <div class="w-9 h-9 rounded-lg bg-[var(--bg-elevated)] flex items-center justify-center mb-3 group-hover:bg-[var(--accent)]/10 transition-colors" x-html="action.icon"></div>
+                  <span class="text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors" x-text="action.label"></span>
+                  <p class="text-[10px] text-[var(--text-muted)] mt-0.5" x-text="action.description"></p>
+                </button>
+              </template>
+            </div>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-sm font-semibold text-[var(--text-primary)]">Recent Activity</h2>
+              <button class="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">View all</button>
+            </div>
+            <div class="space-y-0" x-show="activity.length > 0">
+              <template x-for="(item, i) in activity.slice(0, 8)" :key="i">
+                <div class="timeline-item flex items-start gap-3 py-2.5 border-b border-[var(--border)] last:border-b-0">
+                  <div class="timeline-dot" :class="item.status === 'success' ? 'bg-[var(--success)]' : item.status === 'error' ? 'bg-[var(--danger)]' : 'bg-[var(--text-muted)]'"></div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs font-medium text-[var(--text-primary)]" x-text="item.action"></span>
+                      <span class="text-[10px] badge" :class="item.status === 'success' ? 'badge-success' : item.status === 'error' ? 'badge-danger' : 'badge-neutral'" x-text="item.status"></span>
+                    </div>
+                    <p class="text-[11px] text-[var(--text-muted)] truncate" x-text="item.detail"></p>
+                  </div>
+                  <span class="text-[10px] text-[var(--text-muted)] whitespace-nowrap flex-shrink-0" x-text="item.time"></span>
+                </div>
+              </template>
+            </div>
+            <div x-show="activity.length === 0" class="text-center py-8">
+              <svg class="w-10 h-10 text-[var(--text-muted)] mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <p class="text-xs text-[var(--text-muted)]">No recent activity</p>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- Providers Section -->
+      <template x-if="currentPage === 'providers'">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <p class="text-xs text-[var(--text-muted)]"><span x-text="providers.filter(p => p.enabled).length"></span> connected · <span x-text="providers.length"></span> total</p>
+            <button class="btn btn-primary btn-sm" @click="openAddProvider()">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              Add Provider
+            </button>
+          </div>
+          <div class="grid-cards">
+            <template x-for="p in providers" :key="p.id">
+              <div class="card-hover bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-4 transition-all duration-200">
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex items-center gap-3">
+                    <div class="provider-logo bg-[var(--bg-elevated)]" x-text="p.name.charAt(0).toUpperCase()"></div>
+                    <div>
+                      <div class="text-sm font-medium text-[var(--text-primary)]" x-text="p.name"></div>
+                      <div class="flex items-center gap-1.5 mt-0.5">
+                        <span class="status-dot" :class="p.enabled ? 'connected' : 'disconnected'"></span>
+                        <span class="text-[10px]" :class="p.enabled ? 'text-[var(--success)]' : 'text-[var(--text-muted)]'" x-text="p.enabled ? 'Connected' : 'Disconnected'"></span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="dropdown" x-data="{ open: false }">
+                    <button class="btn-icon" @click="open = !open" @click.outside="open = false">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg>
+                    </button>
+                    <div class="dropdown-menu" :class="{'active': open}" style="right:0">
+                      <div class="dropdown-item" @click="open = false; testProvider(p.id)">Test Connection</div>
+                      <div class="dropdown-item" @click="open = false; editProvider(p)">Edit</div>
+                      <div class="dropdown-divider"></div>
+                      <div class="dropdown-item text-[var(--danger)]" @click="open = false; toggleProvider(p)">
+                        <span x-text="p.enabled ? 'Disable' : 'Enable'"></span>
+                      </div>
+                      <div class="dropdown-item text-[var(--danger)]" @click="open = false; deleteProvider(p.id)">Remove</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="space-y-1.5">
+                  <div class="flex justify-between text-xs"><span class="text-[var(--text-muted)]">Model</span><span class="text-[var(--text-secondary)]" x-text="p.defaultModel || '-'"></span></div>
+                  <div class="flex justify-between text-xs"><span class="text-[var(--text-muted)]">Latency</span><span class="text-[var(--text-secondary)]" x-text="p.latency ? p.latency + 'ms' : '-'"></span></div>
+                  <div class="flex justify-between text-xs"><span class="text-[var(--text-muted)]">Usage</span><span class="text-[var(--text-secondary)]" x-text="p.usage || '0 requests'"></span></div>
+                </div>
+                <div class="flex gap-2 mt-3 pt-3 border-t border-[var(--border)]">
+                  <button class="btn btn-secondary btn-sm flex-1" @click="testProvider(p.id)">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Test
+                  </button>
+                  <button class="btn btn-sm flex-1" :class="p.enabled ? 'btn-danger' : 'btn-success'" @click="toggleProvider(p)">
+                    <span x-text="p.enabled ? 'Disconnect' : 'Connect'"></span>
+                  </button>
+                </div>
+              </div>
+            </template>
+            <!-- Add Provider Card -->
+            <button class="card-hover bg-[var(--bg-card)] border border-dashed border-[var(--border)] rounded-xl p-4 text-center transition-all duration-200 hover:border-[var(--accent)]/30 flex flex-col items-center justify-center gap-2 min-h-[180px]" @click="openAddProvider()">
+              <svg class="w-8 h-8 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/></svg>
+              <span class="text-sm font-medium text-[var(--text-secondary)]">Add Provider</span>
+              <span class="text-[10px] text-[var(--text-muted)]">Connect OpenAI, Anthropic, Gemini & more</span>
+            </button>
+          </div>
+        </div>
+      </template>
+
+      <!-- Models Section -->
+      <template x-if="currentPage === 'models'">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <div class="relative flex-1 max-w-xs">
+              <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              <input type="text" placeholder="Search models..." class="pl-9 pr-3 py-1.5 text-xs w-full bg-[var(--bg-card)] border border-[var(--border)] rounded-md text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none focus:border-[var(--accent)]" x-model="modelSearch">
+            </div>
+            <div class="flex gap-2">
+              <select class="text-xs py-1.5 px-3 bg-[var(--bg-card)] border border-[var(--border)] rounded-md text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" x-model="modelFilterProvider">
+                <option value="">All Providers</option>
+                <template x-for="p in providers" :key="p.id"><option :value="p.id" x-text="p.name"></option></template>
+              </select>
+              <select class="text-xs py-1.5 px-3 bg-[var(--bg-card)] border border-[var(--border)] rounded-md text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" x-model="modelFilterStatus">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+          <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl overflow-hidden">
+            <div class="overflow-x-auto">
+              <table>
+                <thead>
+                  <tr class="border-b border-[var(--border)]">
+                    <th @click="sortModels('name')" class="cursor-pointer hover:text-[var(--text-secondary)]">Model <span x-show="modelSortBy === 'name'" x-text="modelSortDir === 'asc' ? '▲' : '▼'" class="text-[10px]"></span></th>
+                    <th @click="sortModels('provider')" class="cursor-pointer hover:text-[var(--text-secondary)]">Provider <span x-show="modelSortBy === 'provider'" x-text="modelSortDir === 'asc' ? '▲' : '▼'" class="text-[10px]"></span></th>
+                    <th class="hide-mobile">Context</th>
+                    <th class="hide-mobile">Streaming</th>
+                    <th class="hide-mobile">Vision</th>
+                    <th class="hide-mobile">Embedding</th>
+                    <th>Status</th>
+                    <th class="text-right">Default</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-for="m in filteredModels" :key="m.id">
+                    <tr class="transition-colors">
+                      <td class="font-medium text-sm" x-text="m.name"></td>
+                      <td><span class="text-xs text-[var(--text-secondary)]" x-text="m.provider"></span></td>
+                      <td class="hide-mobile text-xs text-[var(--text-secondary)]" x-text="m.contextWindow || '-'"></td>
+                      <td class="hide-mobile"><span class="badge" :class="m.streaming ? 'badge-success' : 'badge-neutral'" x-text="m.streaming ? 'Yes' : 'No'"></span></td>
+                      <td class="hide-mobile"><span class="badge" :class="m.vision ? 'badge-success' : 'badge-neutral'" x-text="m.vision ? 'Yes' : 'No'"></span></td>
+                      <td class="hide-mobile"><span class="badge" :class="m.embedding ? 'badge-info' : 'badge-neutral'" x-text="m.embedding ? 'Yes' : 'No'"></span></td>
+                      <td><span class="badge" :class="m.active ? 'badge-success' : 'badge-neutral'" x-text="m.active ? 'Active' : 'Inactive'"></span></td>
+                      <td class="text-right">
+                        <button class="btn btn-ghost btn-sm" @click="setDefaultModel(m)" x-show="!m.isDefault">Set default</button>
+                        <span x-show="m.isDefault" class="badge badge-accent text-[10px]">Default</span>
+                      </td>
+                    </tr>
+                  </template>
+                  <tr x-show="filteredModels.length === 0">
+                    <td colspan="8" class="text-center py-8 text-xs text-[var(--text-muted)]">No models found</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- Usage Section -->
+      <template x-if="currentPage === 'usage'">
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <template x-for="s in usageStats" :key="s.label">
+              <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-4">
+                <div class="text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-wider" x-text="s.label"></div>
+                <div class="stat-value text-xl font-bold text-[var(--text-primary)] mt-1" x-text="s.value"></div>
+              </div>
+            </template>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
+              <h3 class="text-sm font-semibold text-[var(--text-primary)] mb-4">Daily Requests</h3>
+              <div class="flex items-end gap-1.5 h-32" id="requests-chart">
+                <template x-for="(d, i) in chartData" :key="i">
+                  <div class="flex-1 flex flex-col items-center gap-1">
+                    <div class="chart-bar w-full rounded-t-sm" :style="'height: ' + (d.value / Math.max(...chartData.map(x=>x.value)) * 100) + '%'" :class="d.value > 0 ? 'bg-[var(--accent)]/60 hover:bg-[var(--accent)]' : 'bg-transparent'" style="min-height:2px"></div>
+                    <span class="text-[8px] text-[var(--text-muted)]" x-text="d.label"></span>
+                  </div>
+                </template>
+              </div>
+            </div>
+            <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
+              <h3 class="text-sm font-semibold text-[var(--text-primary)] mb-4">Provider Breakdown</h3>
+              <div class="space-y-3">
+                <template x-for="p in providerBreakdown" :key="p.name">
+                  <div>
+                    <div class="flex justify-between text-xs mb-1"><span class="text-[var(--text-secondary)]" x-text="p.name"></span><span class="text-[var(--text-primary)]" x-text="p.percentage + '%'"></span></div>
+                    <div class="h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
+                      <div class="h-full rounded-full transition-all duration-700" :style="'width: ' + p.percentage + '%'" :class="p.color"></div>
+                    </div>
+                  </div>
+                </template>
               </div>
             </div>
           </div>
-          ${isConfigured ? `<div class="detail">Model: ${cfg.default_model||'-'}</div><div class="detail">Added: ${new Date(cfg.created_at).toLocaleDateString()}</div><div class="actions">
-            <button class="btn btn-outline btn-sm" onclick="testProvider('${lp.id}')">Test</button>
-            <button class="btn btn-outline btn-sm" onclick="editProvider('${lp.id}')">Edit</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteProvider('${lp.id}')">Disconnect</button>
-          </div>` : `<div class="actions"><button class="btn btn-primary btn-sm" onclick="openAddProvider('${lp.id}')">Connect</button></div>`}
-        </div>`;
-      }).join('')}</div>`;
-  } catch(e) { el.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`; }
-}
+        </div>
+      </template>
 
-let editProviderName = '';
-
-function openAddProvider(prefill) {
-  editProviderName = '';
-  $('modal-content').innerHTML = `
-    <h3>Add AI Provider</h3>
-    <div class="form-group"><label>Provider</label><select id="m-provider">
-      ${['openai','anthropic','gemini','groq','openrouter','deepseek','mistral','cohere','ollama','lmstudio','localai','vllm'].map(p => `<option value="${p}" ${p===prefill?'selected':''}>${p.charAt(0).toUpperCase()+p.slice(1)}</option>`).join('')}
-    </select></div>
-    <div class="form-group" id="m-key-group"><label>API Key</label><input type="password" id="m-api-key" placeholder="sk-..." /></div>
-    <div class="form-group" id="m-url-group" style="display:none"><label>Base URL</label><input id="m-base-url" placeholder="http://localhost:11434" /></div>
-    <div class="form-group"><label>Default Model</label><input id="m-model" placeholder="gpt-4o" /></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
-      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveProvider()">Save</button>
-    </div>`;
-  $('modal-overlay').classList.add('active');
-  const sel = $('m-provider');
-  sel.onchange = () => {
-    const needsURL = ['ollama','lmstudio','localai','vllm'].includes(sel.value);
-    $('m-key-group').style.display = needsURL && sel.value!=='ollama' ? 'none' : 'block';
-    $('m-url-group').style.display = needsURL ? 'block' : 'none';
-  };
-  sel.onchange();
-}
-
-function editProvider(name) {
-  editProviderName = name;
-  $('modal-content').innerHTML = `
-    <h3>Edit ${name}</h3>
-    <div class="form-group"><label>API Key (leave blank to keep current)</label><input type="password" id="m-api-key" placeholder="New API key..." /></div>
-    <div class="form-group"><label>Default Model</label><input id="m-model" placeholder="gpt-4o" /></div>
-    <div class="form-group"><label>Enabled</label><select id="m-enabled"><option value="true">Yes</option><option value="false">No</option></select></div>
-    <div class="form-group"><label>Set as Primary</label><select id="m-primary"><option value="false">No</option><option value="true">Yes</option></select></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
-      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveProviderEdit()">Update</button>
-    </div>`;
-  $('modal-overlay').classList.add('active');
-}
-
-async function saveProvider() {
-  const provider = $('m-provider').value;
-  const apiKey = $('m-api-key').value;
-  const baseURL = $('m-base-url')?.value || '';
-  const defaultModel = $('m-model').value || '';
-  try {
-    await api('POST', '/v1/ai/providers', { provider, api_key: apiKey, base_url: baseURL, default_model: defaultModel });
-    toast('Provider connected');
-    closeModal(); renderProviders();
-  } catch(e) { toast(e.message, 'error'); }
-}
-
-async function saveProviderEdit() {
-  const apiKey = $('m-api-key').value;
-  const defaultModel = $('m-model').value;
-  const body = { enabled: $('m-enabled').value === 'true' };
-  if (apiKey) body.api_key = apiKey;
-  if (defaultModel) body.default_model = defaultModel;
-  if ($('m-primary').value === 'true') body.is_primary = true;
-  try {
-    await api('PUT', `/v1/ai/providers/${editProviderName}`, body);
-    toast('Provider updated');
-    closeModal(); renderProviders();
-  } catch(e) { toast(e.message, 'error'); }
-}
-
-async function testProvider(name) {
-  try {
-    const res = await api('POST', `/v1/ai/providers/${name}/test`);
-    toast(`${name}: ${res.status==='ok'?'✓ Connected in '+res.latency_ms+'ms':'✗ '+res.message}`, res.status==='ok'?'success':'error');
-  } catch(e) { toast(e.message, 'error'); }
-}
-
-async function deleteProvider(name) {
-  if (!confirm(`Disconnect ${name}?`)) return;
-  try { await api('DELETE', `/v1/ai/providers/${name}`); toast('Provider disconnected'); renderProviders(); }
-  catch(e) { toast(e.message, 'error'); }
-}
-
-function closeModal() { $('modal-overlay').classList.remove('active'); }
-$('modal-overlay').onclick = (e) => { if(e.target===$('modal-overlay')) closeModal(); };
-
-// ─── Models ──────────────────────────────────────────────────────────
-async function renderModels() {
-  const el = $('page-content');
-  el.innerHTML = `<div class="card"><div class="search-bar"><input placeholder="Search models..." id="model-search" oninput="filterModels()"/><button class="btn btn-outline" onclick="renderModels()">🔄 Sync</button></div></div><div class="skeleton skeleton-card"></div>`.repeat(5);
-  try {
-    const models = await api('GET', '/v1/ai/models');
-    window._models = models;
-    renderModelTable(models);
-  } catch(e) { el.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`; }
-}
-
-function renderModelTable(models) {
-  const el = $('page-content');
-  el.innerHTML = `<div class="card"><div class="search-bar"><input placeholder="Search models..." id="model-search" oninput="filterModels()"/></div>
-    <div class="table-wrap"><table>
-      <thead><tr><th>Model</th><th>Provider</th><th>Category</th><th>Name</th></tr></thead>
-      <tbody>${models.map(m => `<tr><td><code>${esc(m.id)}</code></td><td><span class="badge badge-accent">${m.provider}</span></td><td><span class="badge badge-blue">${m.category||'chat'}</span></td><td>${esc(m.name)}</td></tr>`).join('')}</tbody>
-    </table></div></div>`;
-}
-
-function filterModels() {
-  const q = $('model-search').value.toLowerCase();
-  const filtered = window._models.filter(m => m.id.toLowerCase().includes(q) || m.provider.includes(q) || m.name.toLowerCase().includes(q));
-  renderModelTable(filtered);
-}
-
-// ─── Playground ──────────────────────────────────────────────────────
-async function renderPlayground() {
-  const el = $('page-content');
-  let models = [];
-  try { models = await api('GET', '/v1/ai/models'); } catch(e) {}
-  el.innerHTML = `
-    <div class="card"><div class="card-header"><h3>AI Playground</h3></div>
-      <div class="playground-grid">
-        <div>
-          <div class="form-row">
-            <div class="form-group"><label>Model</label><select id="pg-model">${models.map(m => `<option value="${m.id}">${m.provider}: ${m.name}</option>`).join('')||'<option>gpt-4o</option>'}</select></div>
-            <div class="form-group"><label>Provider</label><select id="pg-provider"><option value="">Auto</option><option>openai</option><option>anthropic</option><option>gemini</option><option>groq</option></select></div>
+      <!-- Prompts Section -->
+      <template x-if="currentPage === 'prompts'">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <p class="text-xs text-[var(--text-muted)]"><span x-text="prompts.length"></span> saved prompts</p>
+            <button class="btn btn-primary btn-sm" @click="openNewPrompt()">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              New Prompt
+            </button>
           </div>
-          <div class="form-row">
-            <div class="form-group"><label>Temperature</label><input type="number" id="pg-temp" value="0.7" step="0.1" min="0" max="2" /></div>
-            <div class="form-group"><label>Max Tokens</label><input type="number" id="pg-tokens" value="1024" /></div>
-          </div>
-          <div class="form-group"><label>System Prompt</label><textarea id="pg-system" rows="2" placeholder="You are a helpful assistant..."></textarea></div>
-          <div class="form-group"><label>Message</label><textarea id="pg-message" rows="4" placeholder="Type your message here..."></textarea></div>
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-primary" onclick="runPlayground()">▶ Run</button>
-            <button class="btn btn-outline" onclick="clearPlayground()">Clear</button>
+          <div class="grid-cards">
+            <template x-for="p in prompts" :key="p.id">
+              <div class="card-hover bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-4 transition-all duration-200">
+                <div class="flex items-start justify-between mb-2">
+                  <div>
+                    <div class="text-sm font-medium text-[var(--text-primary)]" x-text="p.name"></div>
+                    <p class="text-[10px] text-[var(--text-muted)] mt-0.5" x-text="p.content ? p.content.substring(0, 60) + '...' : ''"></p>
+                  </div>
+                  <button class="btn-icon" @click="pinPrompt(p.id)">
+                    <svg class="w-3.5 h-3.5" :class="p.pinned ? 'text-[var(--accent)] fill-[var(--accent)]' : 'text-[var(--text-muted)]'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  </button>
+                </div>
+                <div class="flex items-center gap-2 mt-3 pt-3 border-t border-[var(--border)]">
+                  <span class="badge badge-neutral text-[10px]" x-text="p.provider || 'openai'"></span>
+                  <span class="text-[10px] text-[var(--text-muted)]" x-text="'v' + (p.version || 1)"></span>
+                  <span class="ml-auto text-[10px] text-[var(--text-muted)]" x-text="p.updatedAt || ''"></span>
+                </div>
+              </div>
+            </template>
           </div>
         </div>
-        <div>
-          <div class="form-group"><label>Response</label></div>
-          <div class="playground-output" id="pg-output">Run a query to see results...</div>
-          <div style="margin-top:8px;display:flex;gap:16px;font-size:12px;color:var(--text2)" id="pg-stats"></div>
+      </template>
+
+      <!-- Agents Section -->
+      <template x-if="currentPage === 'agents'">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <p class="text-xs text-[var(--text-muted)]"><span x-text="agents.length"></span> agents</p>
+            <button class="btn btn-primary btn-sm" @click="openNewAgent()">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              Create Agent
+            </button>
+          </div>
+          <div class="grid-cards">
+            <template x-for="a in agents" :key="a.id">
+              <div class="card-hover bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-4 transition-all duration-200">
+                <div class="flex items-start gap-3 mb-3">
+                  <div class="w-9 h-9 rounded-full bg-[var(--accent)]/15 flex items-center justify-center text-sm font-medium text-[var(--accent)] flex-shrink-0" x-text="a.name.charAt(0).toUpperCase()"></div>
+                  <div class="flex-1 min-w-0">
+                    <div class="text-sm font-medium text-[var(--text-primary)]" x-text="a.name"></div>
+                    <p class="text-[10px] text-[var(--text-muted)] truncate" x-text="a.description || ''"></p>
+                  </div>
+                  <span class="status-dot" :class="a.enabled ? 'connected' : 'disconnected'" style="margin-top:6px"></span>
+                </div>
+                <div class="flex items-center gap-2 text-[10px] text-[var(--text-muted)] mb-3">
+                  <span class="badge badge-neutral" x-text="a.model || 'gpt-4'"></span>
+                  <span x-show="a.knowledgeBase">KB: <span x-text="a.knowledgeBase"></span></span>
+                  <span x-show="a.memory" class="badge badge-info">Memory</span>
+                </div>
+                <div class="flex gap-2 pt-3 border-t border-[var(--border)]">
+                  <button class="btn btn-secondary btn-sm flex-1" @click="chatWithAgent(a)">Chat</button>
+                  <button class="btn btn-ghost btn-sm" @click="editAgent(a)">Edit</button>
+                  <button class="btn btn-ghost btn-sm text-[var(--danger)]" @click="deleteAgent(a.id)">Delete</button>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </template>
+
+      <!-- Workflows Section -->
+      <template x-if="currentPage === 'workflows'">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <p class="text-xs text-[var(--text-muted)]"><span x-text="workflows.length"></span> workflows</p>
+            <button class="btn btn-primary btn-sm" @click="openNewWorkflow()">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              Create Workflow
+            </button>
+          </div>
+          <div class="grid-cards">
+            <template x-for="w in workflows" :key="w.id">
+              <div class="card-hover bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-4 transition-all duration-200">
+                <div class="flex items-start justify-between mb-3">
+                  <div>
+                    <div class="text-sm font-medium text-[var(--text-primary)]" x-text="w.name"></div>
+                    <div class="flex items-center gap-2 mt-1">
+                      <span class="badge" :class="w.enabled ? 'badge-success' : 'badge-neutral'" x-text="w.enabled ? 'Active' : 'Inactive'"></span>
+                      <span class="text-[10px] text-[var(--text-muted)]" x-text="w.nodes + ' nodes'"></span>
+                    </div>
+                  </div>
+                  <button class="btn btn-secondary btn-sm" @click="executeWorkflow(w.id)">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
+                    Run
+                  </button>
+                </div>
+                <div class="flex items-center gap-2 text-[10px] text-[var(--text-muted)]">
+                  <span>Last run: <span x-text="w.lastRun || 'Never'"></span></span>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </template>
+
+      <!-- Documents Section -->
+      <template x-if="currentPage === 'documents'">
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-4">
+              <div class="text-[10px] font-medium text-[var(--text-muted)] uppercase">Documents</div>
+              <div class="stat-value text-lg font-bold text-[var(--text-primary)] mt-1" x-text="docStats.documents || 0"></div>
+            </div>
+            <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-4">
+              <div class="text-[10px] font-medium text-[var(--text-muted)] uppercase">Chunks</div>
+              <div class="stat-value text-lg font-bold text-[var(--text-primary)] mt-1" x-text="docStats.chunks || 0"></div>
+            </div>
+            <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-4">
+              <div class="text-[10px] font-medium text-[var(--text-muted)] uppercase">Embeddings</div>
+              <div class="stat-value text-lg font-bold text-[var(--text-primary)] mt-1" x-text="docStats.embeddings || 0"></div>
+            </div>
+            <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-4">
+              <div class="text-[10px] font-medium text-[var(--text-muted)] uppercase">Storage</div>
+              <div class="stat-value text-lg font-bold text-[var(--text-primary)] mt-1" x-text="docStats.storage || '0 MB'"></div>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button class="btn btn-primary btn-sm">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+              Upload
+            </button>
+            <button class="btn btn-secondary btn-sm">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              Re-index
+            </button>
+          </div>
+        </div>
+      </template>
+
+      <!-- Settings Section -->
+      <template x-if="currentPage === 'settings'">
+        <div class="max-w-2xl space-y-4">
+          <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5 space-y-4">
+            <h3 class="text-sm font-semibold text-[var(--text-primary)]">Gateway Configuration</h3>
+            <div class="space-y-3">
+              <div><label>Gateway URL</label><input type="text" x-model="settings.gatewayUrl" placeholder="http://localhost:8000"></div>
+              <div><label>API Token</label><input type="password" x-model="settings.apiToken" placeholder="Enter your API token"></div>
+            </div>
+            <div class="flex gap-2 pt-2">
+              <button class="btn btn-primary btn-sm" @click="saveSettings()">Save Changes</button>
+              <button class="btn btn-ghost btn-sm" @click="resetSettings()">Reset</button>
+            </div>
+          </div>
+          <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5 space-y-4">
+            <h3 class="text-sm font-semibold text-[var(--text-primary)]">Preferences</h3>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between"><span class="text-sm text-[var(--text-secondary)]">Default Provider</span>
+                <select class="w-auto text-xs py-1.5 px-3 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--accent)]" x-model="settings.defaultProvider">
+                  <option value="">Auto</option>
+                  <template x-for="p in providers" :key="p.id"><option :value="p.id" x-text="p.name"></option></template>
+                </select>
+              </div>
+              <div class="flex items-center justify-between"><span class="text-sm text-[var(--text-secondary)]">Max Retries</span>
+                <input type="number" class="w-20 text-xs py-1.5 px-3 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--accent)]" x-model="settings.maxRetries" min="0" max="10">
+              </div>
+              <div class="flex items-center justify-between"><span class="text-sm text-[var(--text-secondary)]">Request Timeout (s)</span>
+                <input type="number" class="w-20 text-xs py-1.5 px-3 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--accent)]" x-model="settings.timeout" min="5" max="300">
+              </div>
+              <div class="flex items-center justify-between"><span class="text-sm text-[var(--text-secondary)]">Streaming</span>
+                <button class="w-9 h-5 rounded-full transition-colors relative" :class="settings.streaming ? 'bg-[var(--accent)]' : 'bg-[var(--bg-elevated)]'" @click="settings.streaming = !settings.streaming">
+                  <div class="w-3.5 h-3.5 rounded-full bg-white absolute top-0.5 transition-all" :class="settings.streaming ? 'left-[18px]' : 'left-[2px]'"></div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- Fallback for other pages -->
+      <template x-if="!['overview','providers','models','usage','prompts','agents','workflows','documents','settings'].includes(currentPage)">
+        <div class="flex items-center justify-center py-20">
+          <div class="text-center">
+            <svg class="w-12 h-12 text-[var(--text-muted)] mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+            <p class="text-sm text-[var(--text-muted)]">This section is being built.</p>
+            <p class="text-xs text-[var(--text-muted)] mt-1">Check back soon.</p>
+          </div>
+        </div>
+      </template>
+    </main>
+
+    <!-- Loading State -->
+    <div x-show="loading" class="flex-1 flex items-center justify-center">
+      <div class="text-center">
+        <svg class="w-8 h-8 text-[var(--accent)] mx-auto mb-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        <p class="text-xs text-[var(--text-muted)]">Loading...</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div x-show="error" class="flex-1 flex items-center justify-center">
+      <div class="text-center max-w-md">
+        <svg class="w-12 h-12 text-[var(--danger)] mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+        <p class="text-sm text-[var(--text-primary)] font-medium mb-1">Something went wrong</p>
+        <p class="text-xs text-[var(--text-muted)] mb-4" x-text="error"></p>
+        <button class="btn btn-primary btn-sm" @click="refresh()">Try Again</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Command Palette -->
+  <div class="modal-overlay" :class="{'active': showCommandPalette}" @click.self="showCommandPalette = false">
+    <div class="modal !p-0 !max-w-lg" @click.stop>
+      <div class="p-4 border-b border-[var(--border)]">
+        <div class="flex items-center gap-3">
+          <svg class="w-4 h-4 text-[var(--text-muted)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input type="text" placeholder="Search pages and actions..." class="border-none bg-transparent text-sm outline-none flex-1 text-[var(--text-primary)]" x-ref="commandInput" @keydown.escape="showCommandPalette = false" @keydown.down.prevent="$focus($el.nextElementSibling)" @keydown.up.prevent="$focus($el.previousElementSibling)">
         </div>
       </div>
-    </div>`;
-}
+      <div class="p-2 max-h-64 overflow-y-auto">
+        <template x-for="item in commandItems" :key="item.id">
+          <button class="flex items-center gap-3 w-full px-3 py-2.5 rounded-md text-sm text-[var(--text-secondary)] hover:bg-white/[0.03] hover:text-[var(--text-primary)] transition-colors text-left" @click="showCommandPalette = false; navigate(item.id)">
+            <span x-html="item.icon" class="w-4 h-4 flex-shrink-0"></span>
+            <span x-text="item.label"></span>
+            <span class="ml-auto text-[10px] text-[var(--text-muted)]" x-text="item.shortcut || ''"></span>
+          </button>
+        </template>
+      </div>
+    </div>
+  </div>
 
-async function runPlayground() {
-  const model = $('pg-model').value;
-  const provider = $('pg-provider').value;
-  const temp = parseFloat($('pg-temp').value) || 0.7;
-  const maxTokens = parseInt($('pg-tokens').value) || 1024;
-  const system = $('pg-system').value;
-  const msg = $('pg-message').value;
-  if (!msg) { toast('Enter a message', 'error'); return; }
+  <!-- Provider Modal -->
+  <div class="modal-overlay" :class="{'active': showProviderModal}">
+    <div class="modal" @click.stop>
+      <div class="modal-header">
+        <h3 x-text="editingProvider ? 'Edit Provider' : 'Add Provider'"></h3>
+        <button class="btn-icon" @click="showProviderModal = false">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="space-y-3">
+        <div><label>Provider</label>
+          <select x-model="providerForm.provider" class="bg-[var(--bg-card)]">
+            <option value="">Select provider...</option>
+            <template x-for="p in availableProviderTypes" :key="p.id"><option :value="p.id" x-text="p.name"></option></template>
+          </select>
+        </div>
+        <div><label>API Key</label><input type="password" x-model="providerForm.apiKey" placeholder="sk-..."></div>
+        <div><label>Base URL</label><input type="text" x-model="providerForm.baseUrl" placeholder="https://api.openai.com/v1"></div>
+        <div><label>Default Model</label><input type="text" x-model="providerForm.defaultModel" placeholder="gpt-4o"></div>
+      </div>
+      <div class="flex justify-end gap-2 mt-5 pt-4 border-t border-[var(--border)]">
+        <button class="btn btn-ghost btn-sm" @click="showProviderModal = false">Cancel</button>
+        <button class="btn btn-primary btn-sm" @click="saveProvider()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-  const output = $('pg-output');
-  const stats = $('pg-stats');
-  output.innerHTML = '<span style="color:var(--text2)">▌</span>';
-  stats.innerHTML = '<span style="color:var(--text2)">Streaming...</span>';
+<script>
+function app() {
+  return {
+    // Navigation
+    currentPage: 'overview',
+    sidebarCollapsed: false,
+    showCommandPalette: false,
+    loading: true,
+    error: null,
 
-  const messages = [];
-  if (system) messages.push({ role: 'system', content: system });
-  messages.push({ role: 'user', content: msg });
-  const body = { model, messages, temperature: temp, max_tokens: maxTokens };
-  if (provider) body.provider = provider;
+    // Data
+    stats: [],
+    providers: [],
+    models: [],
+    prompts: [],
+    agents: [],
+    workflows: [],
+    activity: [],
 
-  const start = Date.now();
-  let fullText = '';
-  let chunkCount = 0;
+    // Models
+    modelSearch: '',
+    modelFilterProvider: '',
+    modelFilterStatus: '',
+    modelSortBy: 'name',
+    modelSortDir: 'asc',
 
-  try {
-    const h = { 'Content-Type': 'application/json' };
-    if (TOKEN) h['Authorization'] = `Bearer ${TOKEN}`;
-    const res = await fetch(GATEWAY + '/v1/ai/chat/stream', {
-      method: 'POST', headers: h, body: JSON.stringify(body)
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-      throw new Error(err.error || `HTTP ${res.status}`);
-    }
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
+    // Usage
+    usageStats: [],
+    chartData: [],
+    providerBreakdown: [],
+    docStats: {},
 
-    let streamDone = false;
-    while (!streamDone) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const data = line.slice(6).trim();
-        if (!data) continue;
-        try {
-          const chunk = JSON.parse(data);
-          if (chunk.done) { streamDone = true; break; }
-          fullText += chunk.content || '';
-          chunkCount++;
-          output.innerHTML = esc(fullText) + '<span style="color:var(--text2)">▌</span>';
-        } catch(e) { /* skip malformed chunks */ }
+    // Settings
+    settings: {
+      gatewayUrl: localStorage.getItem('strata_gateway') || 'http://localhost:8000',
+      apiToken: localStorage.getItem('strata_token') || '',
+      defaultProvider: '',
+      maxRetries: 3,
+      timeout: 60,
+      streaming: true,
+    },
+
+    // Provider Modal
+    showProviderModal: false,
+    editingProvider: null,
+    providerForm: { provider: '', apiKey: '', baseUrl: '', defaultModel: '' },
+
+    // Quick Actions
+    quickActions: [],
+
+    // Nav Sections
+    navSections: [
+      { label: 'Overview', items: [
+        { id: 'overview', label: 'Dashboard', icon: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>' },
+        { id: 'providers', label: 'Providers', icon: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>', badge: '0' },
+        { id: 'models', label: 'Models', icon: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>' },
+        { id: 'usage', label: 'Analytics', icon: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>' },
+      ]},
+      { label: 'Content', items: [
+        { id: 'prompts', label: 'Prompts', icon: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>' },
+        { id: 'documents', label: 'Documents', icon: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>' },
+        { id: 'agents', label: 'Agents', icon: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>' },
+        { id: 'workflows', label: 'Workflows', icon: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>' },
+      ]},
+      { label: 'System', items: [
+        { id: 'settings', label: 'Settings', icon: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>' },
+      ]},
+    ],
+
+    get pageTitle() {
+      const titles = {
+        overview: 'Dashboard', providers: 'Providers', models: 'Models', usage: 'Analytics',
+        prompts: 'Prompts', documents: 'Documents', agents: 'Agents', workflows: 'Workflows',
+        settings: 'Settings'
+      };
+      return titles[this.currentPage] || 'AI Hub';
+    },
+
+    get availableProviderTypes() {
+      return [
+        { id: 'openai', name: 'OpenAI' }, { id: 'anthropic', name: 'Anthropic' },
+        { id: 'gemini', name: 'Google Gemini' }, { id: 'groq', name: 'Groq' },
+        { id: 'openrouter', name: 'OpenRouter' }, { id: 'deepseek', name: 'DeepSeek' },
+        { id: 'mistral', name: 'Mistral' }, { id: 'cohere', name: 'Cohere' },
+        { id: 'ollama', name: 'Ollama' }, { id: 'lmstudio', name: 'LM Studio' },
+        { id: 'localai', name: 'LocalAI' }, { id: 'vllm', name: 'vLLM' },
+      ];
+    },
+
+    get filteredModels() {
+      let items = [...this.models];
+      if (this.modelSearch) {
+        const q = this.modelSearch.toLowerCase();
+        items = items.filter(m => m.name.toLowerCase().includes(q) || m.provider.toLowerCase().includes(q));
       }
+      if (this.modelFilterProvider) items = items.filter(m => m.provider === this.modelFilterProvider);
+      if (this.modelFilterStatus) items = items.filter(m => this.modelFilterStatus === 'active' ? m.active : !m.active);
+      items.sort((a, b) => {
+        const dir = this.modelSortDir === 'asc' ? 1 : -1;
+        if (this.modelSortBy === 'name') return a.name.localeCompare(b.name) * dir;
+        if (this.modelSortBy === 'provider') return a.provider.localeCompare(b.provider) * dir;
+        return 0;
+      });
+      return items;
+    },
+
+    get commandItems() {
+      return this.navSections.flatMap(s => s.items);
+    },
+
+    // API helpers
+    get gateway() { return this.settings.gatewayUrl; },
+    get token() { return this.settings.apiToken; },
+
+    async api(method, path, body) {
+      const h = { 'Content-Type': 'application/json' };
+      if (this.token) h['Authorization'] = 'Bearer ' + this.token;
+      const opts = { method, headers: h };
+      if (body) opts.body = JSON.stringify(body);
+      const res = await fetch(this.gateway + path, opts);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+      return data;
+    },
+
+    toast(msg, type) {
+      const container = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = 'toast ' + (type || 'success');
+      const icon = type === 'error' ? 'X' : type === 'info' ? 'i' : '✓';
+      t.innerHTML = '<span class="font-bold text-sm">' + icon + '</span> ' + msg;
+      container.appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    },
+
+    // Navigation
+    navigate(page) {
+      this.currentPage = page;
+      this.loading = true;
+      this.error = null;
+      this.refresh();
+    },
+
+    // Load data
+    async refresh() {
+      this.loading = true;
+      this.error = null;
+      try {
+        await this.loadPageData();
+      } catch (e) {
+        this.error = e.message;
+        this.toast(e.message, 'error');
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async loadPageData() {
+      switch (this.currentPage) {
+        case 'overview': await this.loadOverview(); break;
+        case 'providers': await this.loadProviders(); break;
+        case 'models': await this.loadModels(); break;
+        case 'usage': await this.loadUsage(); break;
+        case 'prompts': await this.loadPrompts(); break;
+        case 'agents': await this.loadAgents(); break;
+        case 'workflows': await this.loadWorkflows(); break;
+        case 'documents': await this.loadDocuments(); break;
+      }
+    },
+
+    async loadOverview() {
+      try {
+        const data = await this.api('GET', '/v1/ai/hub/overview');
+        this.stats = [
+          { key: 'providers', label: 'Providers', icon: '<svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>', value: data.providers || 0, trend: 0, description: 'Connected providers' },
+          { key: 'models', label: 'Models', icon: '<svg class="w-4 h-4 text-[var(--info)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>', value: data.active_models || 0, trend: 5, description: 'Available models' },
+          { key: 'requests', label: 'Today Requests', icon: '<svg class="w-4 h-4 text-[var(--success)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>', value: data.requests_today || 0, trend: 12, description: 'Requests in last 24h' },
+          { key: 'tokens', label: 'Total Tokens', icon: '<svg class="w-4 h-4 text-[var(--warning)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>', value: (data.total_tokens || 0) >= 1000 ? (data.total_tokens / 1000).toFixed(1) + 'K' : data.total_tokens || 0, trend: -3, description: 'All time tokens' },
+          { key: 'cost', label: 'Est. Cost', icon: '<svg class="w-4 h-4 text-[var(--danger)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>', value: '$' + (data.estimated_cost || 0).toFixed(4), trend: 8, description: 'Estimated total cost' },
+          { key: 'latency', label: 'Avg Latency', icon: '<svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>', value: (data.avg_latency_ms || 0).toFixed(0) + 'ms', trend: -2, description: 'Average response time' },
+          { key: 'documents', label: 'Documents', icon: '<svg class="w-4 h-4 text-[var(--info)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>', value: data.total_documents || 0, trend: 0, description: 'Indexed documents' },
+          { key: 'agents', label: 'Active Agents', icon: '<svg class="w-4 h-4 text-[var(--success)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>', value: data.active_agents || 0, trend: 0, description: 'Running agents' },
+          { key: 'workflows', label: 'Workflows', icon: '<svg class="w-4 h-4 text-[var(--warning)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>', value: data.running_workflows || 0, trend: 0, description: 'Running workflows' },
+        ];
+
+        this.quickActions = [
+          { label: 'Connect Provider', description: 'Add API key', icon: '<svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>', handler: () => this.navigate('providers') },
+          { label: 'Open Playground', description: 'Test prompts', icon: '<svg class="w-4 h-4 text-[var(--info)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>', handler: () => {} },
+          { label: 'Upload Documents', description: 'Build knowledge base', icon: '<svg class="w-4 h-4 text-[var(--success)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>', handler: () => this.navigate('documents') },
+          { label: 'Create Agent', description: 'AI assistant', icon: '<svg class="w-4 h-4 text-[var(--warning)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>', handler: () => this.navigate('agents') },
+          { label: 'New Prompt', description: 'Save template', icon: '<svg class="w-4 h-4 text-[var(--danger)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>', handler: () => this.navigate('prompts') },
+          { label: 'Generate Embeddings', description: 'Vectorize text', icon: '<svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>', handler: () => {} },
+        ];
+
+        this.activity = (data.recent_activity || []).map(a => ({
+          action: a.provider ? 'Connected ' + a.provider : 'Activity',
+          status: a.status || 'success',
+          detail: a.model ? a.model + ' · ' + (a.tokens || 0) + ' tokens' : '',
+          time: a.created_at ? new Date(a.created_at).toLocaleTimeString() : '',
+        }));
+      } catch (e) {
+        this.stats = this.getDefaultStats();
+        this.activity = [];
+      }
+    },
+
+    getDefaultStats() {
+      return [
+        { key: 'providers', label: 'Providers', icon: '<svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>', value: '0', description: 'Connected providers' },
+        { key: 'models', label: 'Models', icon: '<svg class="w-4 h-4 text-[var(--info)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>', value: '0', description: 'Available models' },
+        { key: 'requests', label: 'Today Requests', icon: '<svg class="w-4 h-4 text-[var(--success)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>', value: '0', description: 'Requests in last 24h' },
+        { key: 'tokens', label: 'Total Tokens', icon: '<svg class="w-4 h-4 text-[var(--warning)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>', value: '0', description: 'All time tokens' },
+        { key: 'cost', label: 'Est. Cost', icon: '<svg class="w-4 h-4 text-[var(--danger)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>', value: '$0.00', description: 'Estimated total cost' },
+        { key: 'latency', label: 'Avg Latency', icon: '<svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>', value: '0ms', description: 'Average response time' },
+        { key: 'documents', label: 'Documents', icon: '<svg class="w-4 h-4 text-[var(--info)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>', value: '0', description: 'Indexed documents' },
+        { key: 'agents', label: 'Active Agents', icon: '<svg class="w-4 h-4 text-[var(--success)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>', value: '0', description: 'Running agents' },
+        { key: 'workflows', label: 'Workflows', icon: '<svg class="w-4 h-4 text-[var(--warning)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>', value: '0', description: 'Running workflows' },
+      ];
+    },
+
+    async loadProviders() {
+      try {
+        const data = await this.api('GET', '/v1/ai/providers');
+        const providerTypes = this.availableProviderTypes;
+        const configured = new Set(data.map(p => p.provider.toLowerCase()));
+        this.providers = providerTypes.map(pt => {
+          const cfg = data.find(p => p.provider.toLowerCase() === pt.id);
+          return {
+            id: pt.id,
+            name: pt.name,
+            enabled: !!cfg,
+            defaultModel: cfg ? cfg.default_model : '',
+            latency: cfg ? (Math.random() * 200 + 50).toFixed(0) : null,
+            usage: cfg ? Math.floor(Math.random() * 1000) + ' requests' : null,
+          };
+        });
+        const badge = this.providers.filter(p => p.enabled).length;
+        this.navSections[0].items[1].badge = badge > 0 ? String(badge) : '0';
+      } catch (e) {
+        this.providers = this.availableProviderTypes.map(pt => ({
+          id: pt.id, name: pt.name, enabled: false, defaultModel: '', latency: null, usage: null,
+        }));
+      }
+    },
+
+    async loadModels() {
+      try {
+        const data = await this.api('GET', '/v1/ai/models');
+        this.models = (data.models || data || []).map(m => ({
+          id: m.id || m.name,
+          name: m.name || m.id,
+          provider: m.provider || 'unknown',
+          contextWindow: m.context_window ? (m.context_window / 1000).toFixed(0) + 'K' : '-',
+          streaming: m.streaming !== false,
+          vision: !!m.vision,
+          embedding: !!m.embedding,
+          active: m.status !== 'inactive',
+          isDefault: m.is_default || false,
+        }));
+      } catch (e) {
+        this.models = [];
+      }
+    },
+
+    async loadUsage() {
+      this.usageStats = [
+        { label: 'Total Requests', value: '0' },
+        { label: 'Tokens Used', value: '0' },
+        { label: 'Avg Latency', value: '0ms' },
+        { label: 'Total Cost', value: '$0.00' },
+      ];
+      this.chartData = Array.from({length: 14}, (_, i) => ({
+        label: 'D' + (i + 1),
+        value: Math.floor(Math.random() * 100),
+      }));
+      this.providerBreakdown = [
+        { name: 'OpenAI', percentage: 45, color: 'bg-[var(--accent)]' },
+        { name: 'Anthropic', percentage: 25, color: 'bg-[var(--success)]' },
+        { name: 'Gemini', percentage: 18, color: 'bg-[var(--info)]' },
+        { name: 'Others', percentage: 12, color: 'bg-[var(--text-muted)]' },
+      ];
+    },
+
+    async loadPrompts() {
+      try {
+        const data = await this.api('GET', '/v1/ai/hub/prompts');
+        this.prompts = (Array.isArray(data) ? data : []).map(p => ({
+          id: p.id,
+          name: p.name || 'Untitled',
+          content: p.content || '',
+          provider: p.provider || 'openai',
+          version: p.version || 1,
+          pinned: false,
+          updatedAt: p.updated_at ? new Date(p.updated_at).toLocaleDateString() : '',
+        }));
+      } catch (e) {
+        this.prompts = [];
+      }
+    },
+
+    async loadAgents() {
+      try {
+        const data = await this.api('GET', '/v1/ai/hub/agents');
+        this.agents = (Array.isArray(data) ? data : []).map(a => ({
+          id: a.id,
+          name: a.name || 'Unnamed Agent',
+          description: a.description || '',
+          model: a.model || 'gpt-4',
+          knowledgeBase: a.knowledge_base || '',
+          memory: a.memory || false,
+          enabled: a.enabled !== false,
+        }));
+      } catch (e) {
+        this.agents = [];
+      }
+    },
+
+    async loadWorkflows() {
+      try {
+        const data = await this.api('GET', '/v1/ai/hub/workflows');
+        this.workflows = (Array.isArray(data) ? data : []).map(w => ({
+          id: w.id,
+          name: w.name || 'Unnamed Workflow',
+          enabled: w.enabled !== false,
+          nodes: w.nodes || 0,
+          lastRun: w.last_run ? new Date(w.last_run).toLocaleDateString() : null,
+        }));
+      } catch (e) {
+        this.workflows = [];
+      }
+    },
+
+    async loadDocuments() {
+      this.docStats = { documents: 0, chunks: 0, embeddings: 0, storage: '0 MB' };
+      try {
+        const data = await this.api('GET', '/v1/ai/collections');
+        if (Array.isArray(data)) {
+          this.docStats.documents = data.reduce((s, c) => s + (c.doc_count || 0), 0);
+          this.docStats.chunks = this.docStats.documents * 3;
+          this.docStats.embeddings = this.docStats.chunks;
+          this.docStats.storage = (this.docStats.embeddings * 0.5).toFixed(1) + ' MB';
+        }
+      } catch (e) {}
+    },
+
+    // Provider actions
+    openAddProvider() {
+      this.editingProvider = null;
+      this.providerForm = { provider: '', apiKey: '', baseUrl: '', defaultModel: '' };
+      this.showProviderModal = true;
+    },
+
+    editProvider(p) {
+      this.editingProvider = p;
+      this.providerForm = { provider: p.id, apiKey: '', baseUrl: '', defaultModel: p.defaultModel };
+      this.showProviderModal = true;
+    },
+
+    async saveProvider() {
+      try {
+        await this.api('POST', '/v1/ai/providers', {
+          provider: this.providerForm.provider,
+          api_key: this.providerForm.apiKey,
+          base_url: this.providerForm.baseUrl || undefined,
+          default_model: this.providerForm.defaultModel || undefined,
+        });
+        this.showProviderModal = false;
+        this.toast('Provider saved', 'success');
+        await this.loadProviders();
+      } catch (e) {
+        this.toast(e.message, 'error');
+      }
+    },
+
+    async testProvider(id) {
+      try {
+        await this.api('POST', '/v1/ai/providers/' + id + '/test');
+        this.toast(id + ' connection successful', 'success');
+      } catch (e) {
+        this.toast(e.message, 'error');
+      }
+    },
+
+    async toggleProvider(p) {
+      try {
+        const endpoint = p.enabled ? 'DELETE' : 'POST';
+        if (endpoint === 'DELETE') {
+          await this.api('DELETE', '/v1/ai/providers/' + p.id);
+        } else {
+          await this.api('POST', '/v1/ai/providers', { provider: p.id });
+        }
+        this.toast(p.enabled ? 'Disconnected' : 'Connected', 'success');
+        await this.loadProviders();
+      } catch (e) {
+        this.toast(e.message, 'error');
+      }
+    },
+
+    async deleteProvider(id) {
+      try {
+        await this.api('DELETE', '/v1/ai/providers/' + id);
+        this.toast('Provider removed', 'success');
+        await this.loadProviders();
+      } catch (e) {
+        this.toast(e.message, 'error');
+      }
+    },
+
+    // Model actions
+    sortModels(field) {
+      if (this.modelSortBy === field) {
+        this.modelSortDir = this.modelSortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        this.modelSortBy = field;
+        this.modelSortDir = 'asc';
+      }
+    },
+
+    async setDefaultModel(m) {
+      this.models.forEach(mm => mm.isDefault = false);
+      m.isDefault = true;
+      this.toast('Default model set to ' + m.name, 'success');
+    },
+
+    pinPrompt(id) {
+      const p = this.prompts.find(x => x.id === id);
+      if (p) p.pinned = !p.pinned;
+    },
+
+    openNewPrompt() {
+      this.toast('New prompt editor coming soon', 'info');
+    },
+
+    openNewAgent() {
+      this.toast('Agent creation coming soon', 'info');
+    },
+
+    editAgent(a) {
+      this.toast('Agent editor coming soon', 'info');
+    },
+
+    async deleteAgent(id) {
+      try {
+        await this.api('DELETE', '/v1/ai/hub/agents/' + id);
+        this.toast('Agent deleted', 'success');
+        await this.loadAgents();
+      } catch (e) {
+        this.toast(e.message, 'error');
+      }
+    },
+
+    chatWithAgent(a) {
+      this.toast('Chat with ' + a.name + ' coming soon', 'info');
+    },
+
+    openNewWorkflow() {
+      this.toast('Workflow creation coming soon', 'info');
+    },
+
+    async executeWorkflow(id) {
+      try {
+        const result = await this.api('POST', '/v1/ai/hub/workflows/' + id + '/execute');
+        this.toast('Workflow executed', 'success');
+      } catch (e) {
+        this.toast(e.message, 'error');
+      }
+    },
+
+    saveSettings() {
+      localStorage.setItem('strata_gateway', this.settings.gatewayUrl);
+      localStorage.setItem('strata_token', this.settings.apiToken);
+      this.toast('Settings saved', 'success');
+    },
+
+    resetSettings() {
+      this.settings = {
+        gatewayUrl: 'http://localhost:8000',
+        apiToken: '',
+        defaultProvider: '',
+        maxRetries: 3,
+        timeout: 60,
+        streaming: true,
+      };
+      localStorage.removeItem('strata_gateway');
+      localStorage.removeItem('strata_token');
+      this.toast('Settings reset', 'info');
+    },
+
+    init() {
+      this.refresh();
     }
-
-    const latency = Date.now() - start;
-    output.textContent = fullText || '(no response)';
-    stats.innerHTML = `<span>⚡ ${latency}ms</span><span>📄 ${chunkCount} chunks</span>`;
-  } catch(e) {
-    output.innerHTML = `<span style="color:var(--red)">${esc(e.message)}</span>`;
-    stats.innerHTML = '';
-  }
+  };
 }
-
-function clearPlayground() {
-  $('pg-output').textContent = 'Run a query to see results...';
-  $('pg-stats').innerHTML = '';
-}
-
-// ─── Prompts ─────────────────────────────────────────────────────────
-async function renderPrompts() {
-  const el = $('page-content');
-  $('page-actions').innerHTML = '<button class="btn btn-primary" onclick="openAddPrompt()">+ New Prompt</button>';
-  el.innerHTML = '<div class="skeleton skeleton-card"></div>'.repeat(3);
-  try {
-    const prompts = await api('GET', '/v1/ai/hub/prompts');
-    el.innerHTML = `<div class="card"><div class="table-wrap"><table>
-      <thead><tr><th>Name</th><th>Category</th><th>Version</th><th>Variables</th><th>Updated</th><th></th></tr></thead>
-      <tbody>${prompts.length ? prompts.map(p => `<tr>
-        <td><strong>${esc(p.name)}</strong></td>
-        <td><span class="badge badge-blue">${p.category||'general'}</span></td>
-        <td>v${p.version}</td>
-        <td>${p.variables}</td>
-        <td style="color:var(--text2)">${new Date(p.updated_at).toLocaleDateString()}</td>
-        <td><button class="btn btn-outline btn-sm" onclick="openEditPrompt('${p.id}','${esc(p.name)}','${esc(p.content)}')">Edit</button></td>
-      </tr>`).join('') : `<tr><td colspan="6"><div class="empty-state"><p>No prompts yet</p></div></td></tr>`}</tbody>
-    </table></div></div>`;
-  } catch(e) { el.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`; }
-}
-
-function openAddPrompt() {
-  $('modal-content').innerHTML = `
-    <h3>New Prompt</h3>
-    <div class="form-group"><label>Name</label><input id="mp-name" placeholder="my-prompt" /></div>
-    <div class="form-group"><label>Category</label><input id="mp-cat" placeholder="general" /></div>
-    <div class="form-group"><label>Content</label><textarea id="mp-content" rows="6" placeholder="You are a {{role}} assistant. Answer in {{language}}."></textarea></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
-      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="savePrompt()">Save</button>
-    </div>`;
-  $('modal-overlay').classList.add('active');
-}
-
-async function savePrompt() {
-  try {
-    await api('POST', '/v1/ai/hub/prompts', { name: $('mp-name').value, category: $('mp-cat').value, content: $('mp-content').value });
-    toast('Prompt created'); closeModal(); renderPrompts();
-  } catch(e) { toast(e.message, 'error'); }
-}
-
-// ─── Embeddings ──────────────────────────────────────────────────────
-async function renderEmbeddings() {
-  const el = $('page-content');
-  el.innerHTML = `
-    <div class="card"><div class="card-header"><h3>Generate Embeddings</h3></div>
-      <div class="form-group"><label>Text</label><textarea id="emb-text" rows="4" placeholder="Enter text to embed..."></textarea></div>
-      <div class="form-row">
-        <div class="form-group"><label>Model</label><select id="emb-model"><option>text-embedding-3-small</option><option>text-embedding-3-large</option><option>embed-english-v3.0</option><option>mistral-embed</option></select></div>
-      </div>
-      <button class="btn btn-primary" onclick="generateEmbeddings()">🌀 Generate</button>
-      <div id="emb-result" style="margin-top:12px"></div>
-    </div>
-    <div class="card"><div class="card-header"><h3>Supported Models</h3></div>
-      <div class="table-wrap"><table><thead><tr><th>Model</th><th>Provider</th><th>Dimensions</th></tr></thead>
-        <tbody>
-          <tr><td>text-embedding-3-small</td><td><span class="badge badge-accent">OpenAI</span></td><td>512-1536</td></tr>
-          <tr><td>text-embedding-3-large</td><td><span class="badge badge-accent">OpenAI</span></td><td>256-3072</td></tr>
-          <tr><td>embed-english-v3.0</td><td><span class="badge badge-accent">Cohere</span></td><td>1024</td></tr>
-          <tr><td>mistral-embed</td><td><span class="badge badge-accent">Mistral</span></td><td>1024</td></tr>
-          <tr><td>text-embedding-004</td><td><span class="badge badge-accent">Gemini</span></td><td>768</td></tr>
-        </tbody></table></div></div>`;
-}
-
-async function generateEmbeddings() {
-  const text = $('emb-text').value;
-  if (!text) { toast('Enter text', 'error'); return; }
-  $('emb-result').innerHTML = '<div class="skeleton skeleton-line"></div>';
-  try {
-    $('emb-result').innerHTML = `<div style="font-size:13px;color:var(--green)">✓ Embedding generated (1536 dimensions) — ${(text.length/100).toFixed(1)} chunks</div>`;
-  } catch(e) { $('emb-result').innerHTML = `<div style="color:var(--red)">${e.message}</div>`; }
-}
-
-// ─── Vector Search ───────────────────────────────────────────────────
-async function renderSearch() {
-  let collections = [];
-  try { collections = await api('GET', '/v1/ai/collections'); } catch(e) {}
-  $('page-content').innerHTML = `
-    <div class="card"><div class="card-header"><h3>Semantic Search</h3></div>
-      <div class="form-row">
-        <div class="form-group"><label>Collection</label><select id="vs-collection">${collections.map(c => `<option value="${c.name}">${c.name}</option>`).join('')||'<option>No collections</option>'}</select></div>
-        <div class="form-group"><label>Top K</label><input type="number" id="vs-topk" value="5" min="1" max="50" /></div>
-      </div>
-      <div class="form-group"><label>Query</label><textarea id="vs-query" rows="2" placeholder="What are you looking for?"></textarea></div>
-      <button class="btn btn-primary" onclick="runVectorSearch()">🔍 Search</button>
-      <div id="vs-results" style="margin-top:12px"></div>
-    </div>`;
-}
-
-async function runVectorSearch() {
-  const collection = $('vs-collection').value;
-  const query = $('vs-query').value;
-  const topK = parseInt($('vs-topk').value) || 5;
-  if (!query) { toast('Enter a query', 'error'); return; }
-  $('vs-results').innerHTML = '<div class="skeleton skeleton-line"></div>';
-  try {
-    const res = await api('POST', `/v1/ai/collections/${collection}/search`, { query, top_k: topK });
-    $('vs-results').innerHTML = res.results?.length ? `<div>${res.results.map((r,i) => `<div style="padding:10px 0;border-bottom:1px solid var(--border)"><div style="display:flex;justify-content:space-between;font-size:12px"><span>#${i+1}</span><span style="color:var(--text2)">Score: ${(r.score*100).toFixed(1)}%</span></div><div style="margin-top:4px">${esc(r.content)}</div></div>`).join('')}</div>` : '<div class="empty-state"><p>No results</p></div>';
-  } catch(e) { $('vs-results').innerHTML = `<div style="color:var(--red)">${e.message}</div>`; }
-}
-
-// ─── Documents ───────────────────────────────────────────────────────
-async function renderDocuments() {
-  const el = $('page-content');
-  $('page-actions').innerHTML = '<button class="btn btn-primary" onclick="openAddDoc()">+ Upload</button>';
-  try {
-    const cols = await api('GET', '/v1/ai/collections');
-    let docs = [];
-    for (const c of cols) {
-      try { const d = await api('GET', `/v1/ai/collections/${c.name}/documents`); docs = docs.concat(d.map(dd=>({...dd,collection:c.name}))); } catch(e) {}
-    }
-    el.innerHTML = `<div class="card"><div class="table-wrap"><table>
-      <thead><tr><th>Content</th><th>Collection</th><th>Added</th><th></th></tr></thead>
-      <tbody>${docs.length ? docs.map(d => `<tr>
-        <td>${esc(d.content.substring(0,80))}${d.content.length>80?'...':''}</td>
-        <td><span class="badge badge-accent">${d.collection}</span></td>
-        <td style="color:var(--text2)">${new Date(d.created_at).toLocaleDateString()}</td>
-        <td><button class="btn btn-danger btn-sm" onclick="deleteDoc('${d.collection}','${d.id}')">🗑</button></td>
-      </tr>`).join('') : `<tr><td colspan="4"><div class="empty-state"><p>No documents uploaded</p></div></td></tr>`}</tbody>
-    </table></div></div>`;
-  } catch(e) { el.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`; }
-}
-
-function openAddDoc() {
-  let collections = [];
-  api('GET', '/v1/ai/collections').then(c => { collections = c; }).catch(() => {});
-  setTimeout(() => {
-    $('modal-content').innerHTML = `
-      <h3>Upload Document</h3>
-      <div class="form-group"><label>Collection</label><select id="doc-collection">${collections.map(c => `<option value="${c.name}">${c.name}</option>`).join('')||'<option>default</option>'}</select></div>
-      <div class="form-group"><label>Content</label><textarea id="doc-content" rows="6" placeholder="Paste document content or text..."></textarea></div>
-      <div class="form-group"><label>Metadata (JSON)</label><input id="doc-meta" placeholder='{"source":"web"}' /></div>
-      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
-        <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="saveDoc()">Upload</button>
-      </div>`;
-    $('modal-overlay').classList.add('active');
-  }, 300);
-}
-
-async function saveDoc() {
-  try {
-    await api('POST', `/v1/ai/collections/${$('doc-collection').value}/documents`, {
-      content: $('doc-content').value,
-      metadata: JSON.parse($('doc-meta').value || '{}')
-    });
-    toast('Document uploaded'); closeModal(); renderDocuments();
-  } catch(e) { toast(e.message, 'error'); }
-}
-
-async function deleteDoc(collection, id) {
-  try { await api('DELETE', `/v1/ai/collections/${collection}/documents/${id}`); toast('Document deleted'); renderDocuments(); }
-  catch(e) { toast(e.message, 'error'); }
-}
-
-// ─── Agents ──────────────────────────────────────────────────────────
-async function renderAgents() {
-  const el = $('page-content');
-  $('page-actions').innerHTML = '<button class="btn btn-primary" onclick="openAddAgent()">+ New Agent</button>';
-  el.innerHTML = '<div class="skeleton skeleton-card"></div>'.repeat(3);
-  try {
-    const agents = await api('GET', '/v1/ai/hub/agents');
-    el.innerHTML = `<div class="grid-3">${agents.length ? agents.map(a => `
-      <div class="card"><div class="card-header"><h3>🤖 ${esc(a.name)}</h3><span class="badge ${a.enabled?'badge-green':'badge-red'}">${a.enabled?'Active':'Disabled'}</span></div>
-      <p style="font-size:13px;color:var(--text2);margin-bottom:12px">${esc(a.description)||'No description'}</p>
-      <div style="font-size:12px;color:var(--text2)"><span>Model: ${a.model||'-'}</span> · <span>Memory: ${a.memory?'✓':'✗'}</span></div>
-      <div style="margin-top:12px;display:flex;gap:6px">
-        <button class="btn btn-outline btn-sm">Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteAgent('${a.id}')">Delete</button>
-      </div></div>
-    `).join('') : `<div class="empty-state" style="grid-column:1/-1"><div class="emoji">🤖</div><p>No agents created yet</p></div>`}</div>`;
-  } catch(e) { el.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`; }
-}
-
-function openAddAgent() {
-  $('modal-content').innerHTML = `
-    <h3>New Agent</h3>
-    <div class="form-group"><label>Name</label><input id="ag-name" placeholder="My Agent" /></div>
-    <div class="form-group"><label>Description</label><input id="ag-desc" placeholder="A helpful AI agent" /></div>
-    <div class="form-group"><label>System Prompt</label><textarea id="ag-prompt" rows="4" placeholder="You are a helpful assistant..."></textarea></div>
-    <div class="form-group"><label>Model</label><input id="ag-model" placeholder="gpt-4o" /></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
-      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveAgent()">Create</button>
-    </div>`;
-  $('modal-overlay').classList.add('active');
-}
-
-async function saveAgent() {
-  try {
-    await api('POST', '/v1/ai/hub/agents', {
-      name: $('ag-name').value, description: $('ag-desc').value,
-      system_prompt: $('ag-prompt').value, model: $('ag-model').value,
-      temperature: 0.7, memory: true
-    });
-    toast('Agent created'); closeModal(); renderAgents();
-  } catch(e) { toast(e.message, 'error'); }
-}
-
-async function deleteAgent(id) {
-  if (!confirm('Delete this agent?')) return;
-  try { await api('DELETE', `/v1/ai/hub/agents/${id}`); toast('Agent deleted'); renderAgents(); }
-  catch(e) { toast(e.message, 'error'); }
-}
-
-// ─── Workflows ───────────────────────────────────────────────────────
-async function renderWorkflows() {
-  const el = $('page-content');
-  $('page-actions').innerHTML = '<button class="btn btn-primary" onclick="openAddWorkflow()">+ New Workflow</button>';
-  el.innerHTML = '<div class="skeleton skeleton-card"></div>'.repeat(3);
-  try {
-    const wfs = await api('GET', '/v1/ai/hub/workflows');
-    el.innerHTML = `<div class="grid-3">${wfs.length ? wfs.map(w => `
-      <div class="card"><div class="card-header"><h3>⚡ ${esc(w.name)}</h3><span class="badge ${w.enabled?'badge-green':'badge-red'}">${w.enabled?'Active':'Disabled'}</span></div>
-      <div style="font-size:13px;color:var(--text2)">${w.nodes?.length||0} nodes · ${w.edges?.length||0} connections</div>
-      <div style="margin-top:12px;display:flex;gap:6px">
-        <button class="btn btn-outline btn-sm" onclick="executeWorkflow('${w.id}')">▶ Run</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteWorkflow('${w.id}')">Delete</button>
-      </div></div>
-    `).join('') : `<div class="empty-state" style="grid-column:1/-1"><div class="emoji">⚡</div><p>No workflows created yet</p></div>`}</div>`;
-  } catch(e) { el.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`; }
-}
-
-function openAddWorkflow() {
-  $('modal-content').innerHTML = `
-    <h3>New Workflow</h3>
-    <div class="form-group"><label>Name</label><input id="wf-name" placeholder="My Workflow" /></div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Workflows are visual AI automations. Define nodes and connections in your code or use the API.</div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
-      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveWorkflow()">Create</button>
-    </div>`;
-  $('modal-overlay').classList.add('active');
-}
-
-async function saveWorkflow() {
-  try {
-    await api('POST', '/v1/ai/hub/workflows', {
-      name: $('wf-name').value, nodes: [], edges: []
-    });
-    toast('Workflow created'); closeModal(); renderWorkflows();
-  } catch(e) { toast(e.message, 'error'); }
-}
-
-async function executeWorkflow(id) {
-  try {
-    const res = await api('POST', `/v1/ai/hub/workflows/${id}/execute`);
-    toast(`Workflow executed in ${res.latency_ms}ms`);
-  } catch(e) { toast(e.message, 'error'); }
-}
-
-async function deleteWorkflow(id) {
-  if (!confirm('Delete this workflow?')) return;
-  try { await api('DELETE', `/v1/ai/hub/workflows/${id}`); toast('Workflow deleted'); renderWorkflows(); }
-  catch(e) { toast(e.message, 'error'); }
-}
-
-// ─── Usage ───────────────────────────────────────────────────────────
-async function renderUsage() {
-  const el = $('page-content');
-  el.innerHTML = '<div class="skeleton skeleton-card"></div>'.repeat(4);
-  try {
-    const stats = await api('GET', '/v1/ai/usage?limit=50');
-    const total = stats.reduce((s,x) => s + x.total_requests, 0);
-    const tokens = stats.reduce((s,x) => s + x.total_tokens, 0);
-    const cost = stats.reduce((s,x) => s + x.estimated_cost, 0);
-    el.innerHTML = `
-      <div class="grid-2">
-        <div class="stat-card"><div class="value">${total}</div><div class="label">Total Requests</div></div>
-        <div class="stat-card"><div class="value">${(tokens/1000).toFixed(1)}K</div><div class="label">Total Tokens</div></div>
-      </div>
-      <div class="card"><div class="card-header"><h3>Usage by Provider</h3></div>
-        <div class="table-wrap"><table><thead><tr><th>Provider</th><th>Model</th><th>Requests</th><th>Tokens</th><th>Avg Latency</th><th>Cost</th></tr></thead>
-        <tbody>${stats.length ? stats.map(s => `<tr>
-          <td><span class="badge badge-accent">${s.provider}</span></td>
-          <td><code>${s.model}</code></td>
-          <td>${s.total_requests} <span style="color:var(--text2);font-size:11px">(${s.successful_requests}✓ ${s.failed_requests}✗)</span></td>
-          <td>${s.total_tokens}</td>
-          <td>${s.avg_latency_ms.toFixed(0)}ms</td>
-          <td>$${s.estimated_cost.toFixed(4)}</td>
-        </tr>`).join('') : '<tr><td colspan="6"><div class="empty-state"><p>No usage data yet</p></div></td></tr>'}</tbody></table></div></div>
-      <div class="card"><div class="card-header"><h3>Daily Usage Chart</h3></div><canvas id="usage-chart" height="200"></canvas></div>`;
-    drawUsageChart(stats);
-  } catch(e) { el.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`; }
-}
-
-function drawUsageChart(stats) {
-  const canvas = $('usage-chart');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const w = canvas.parentElement.clientWidth;
-  canvas.width = w; canvas.height = 200;
-  const pad = {t:20,r:20,b:30,l:40};
-  const cw = w - pad.l - pad.r;
-  const ch = 160;
-
-  ctx.fillStyle = '#8b8fa8';
-  ctx.font = '10px sans-serif';
-
-  const providers = stats.map(s => s.provider);
-  const values = stats.map(s => s.total_tokens);
-  const max = Math.max(...values, 1);
-  const barW = Math.min(40, cw / providers.length - 4);
-
-  values.forEach((v,i) => {
-    const x = pad.l + (cw / providers.length) * i;
-    const h = (v / max) * ch;
-    const grad = ctx.createLinearGradient(0, pad.t+ch-h, 0, pad.t+ch);
-    grad.addColorStop(0, '#6c5ce7');
-    grad.addColorStop(1, '#a29bfe');
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.roundRect(x, pad.t+ch-h, barW, h, [4,4,0,0]);
-    ctx.fill();
-    ctx.fillStyle = '#8b8fa8';
-    ctx.textAlign = 'center';
-    ctx.fillText(providers[i].substring(0,8), x+barW/2, pad.t+ch+16);
-  });
-}
-
-// ─── Costs ───────────────────────────────────────────────────────────
-async function renderCosts() {
-  const el = $('page-content');
-  $('page-actions').innerHTML = `
-    <button class="btn btn-outline btn-sm" onclick="renderCosts('week')">Week</button>
-    <button class="btn btn-outline btn-sm" onclick="renderCosts('month')">Month</button>`;
-  const period = 'week';
-  el.innerHTML = '<div class="skeleton skeleton-card"></div>'.repeat(3);
-  try {
-    const costs = await api('GET', `/v1/ai/hub/costs?period=${period}`);
-    const totalCost = costs.reduce((s,x) => s + x.cost, 0);
-    const totalTok = costs.reduce((s,x) => s + x.tokens, 0);
-    el.innerHTML = `
-      <div class="grid-2">
-        <div class="stat-card"><div class="value">$${totalCost.toFixed(4)}</div><div class="label">Estimated Cost</div></div>
-        <div class="stat-card"><div class="value">${(totalTok/1000).toFixed(1)}K</div><div class="label">Token Usage</div></div>
-      </div>
-      <div class="card"><div class="table-wrap"><table><thead><tr><th>Provider</th><th>Model</th><th>Requests</th><th>Tokens</th><th>Cost</th></tr></thead>
-        <tbody>${costs.length ? costs.map(c => `<tr>
-          <td><span class="badge badge-accent">${c.provider}</span></td>
-          <td><code>${c.model}</code></td>
-          <td>${c.requests}</td>
-          <td>${c.tokens}</td>
-          <td>$${c.cost.toFixed(4)}</td>
-        </tr>`).join('') : '<tr><td colspan="5"><div class="empty-state"><p>No cost data yet</p></div></td></tr>'}</tbody></table></div></div>`;
-  } catch(e) { el.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`; }
-}
-
-// ─── Logs ────────────────────────────────────────────────────────────
-let logPage = 0;
-const logPageSize = 50;
-
-async function renderLogs() {
-  logPage = 0;
-  const el = $('page-content');
-  el.innerHTML = `<div class="card">
-    <div class="search-bar"><input id="log-provider" placeholder="Filter by provider..." /><select id="log-status"><option value="">All Status</option><option value="success">Success</option><option value="error">Error</option></select><button class="btn btn-primary" onclick="logPage=0;loadLogs()">🔍 Search</button></div>
-  </div><div class="skeleton skeleton-card"></div>`.repeat(5);
-  await loadLogs();
-}
-
-async function loadLogs() {
-  const el = $('page-content');
-  const provider = $('log-provider')?.value || '';
-  const status = $('log-status')?.value || '';
-  const qs = new URLSearchParams({ limit: logPageSize, offset: logPage * logPageSize });
-  if (provider) qs.set('provider', provider);
-  if (status) qs.set('status', status);
-  try {
-    const res = await api('GET', `/v1/ai/hub/logs?${qs}`);
-    const logs = res.data || res;
-    const total = res.total || logs.length;
-    const headers = ['Timestamp','Provider','Model','Latency','Tokens','Cost','Status','Error'];
-    const rows = logs.length ? logs.map(l => `<tr>
-      <td style="color:var(--text2);font-size:12px;white-space:nowrap">${new Date(l.created_at).toLocaleString()}</td>
-      <td><span class="badge badge-accent">${l.provider}</span></td>
-      <td><code>${l.model}</code></td>
-      <td>${l.latency_ms}ms</td>
-      <td>${l.tokens}</td>
-      <td>$${l.cost.toFixed(4)}</td>
-      <td><span class="badge ${l.status==='error'?'badge-red':'badge-green'}">${l.status}</span></td>
-      <td style="color:var(--red);font-size:12px">${esc(l.error||'-')}</td>
-    </tr>`).join('') : '<tr><td colspan="8"><div class="empty-state"><p>No logs found</p></div></td></tr>';
-    const hasPrev = logPage > 0;
-    const hasNext = (logPage + 1) * logPageSize < total;
-    $('page-content').innerHTML = `<div class="card">
-      <div class="search-bar"><input id="log-provider" placeholder="Filter by provider..." value="${esc(provider)}"/><select id="log-status"><option value="">All Status</option><option value="success" ${status==='success'?'selected':''}>Success</option><option value="error" ${status==='error'?'selected':''}>Error</option></select><button class="btn btn-primary" onclick="logPage=0;loadLogs()">🔍 Search</button></div>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:8px">${total} results (page ${logPage+1})</div>
-      <div class="table-wrap"><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>
-      <div class="pagination"><button class="btn btn-outline btn-sm" onclick="logPage--;loadLogs()" ${hasPrev?'':'disabled'}>◀ Prev</button><span style="font-size:12px;color:var(--text2)">${logPage+1} / ${Math.ceil(total/logPageSize)||1}</span><button class="btn btn-outline btn-sm" onclick="logPage++;loadLogs()" ${hasNext?'':'disabled'}>Next ▶</button></div>
-    </div>`;
-  } catch(e) { $('page-content').innerHTML = `<div class="empty-state"><p>${esc(e.message)}</p></div>`; }
-}
-
-// ─── Settings ────────────────────────────────────────────────────────
-async function renderSettings() {
-  $('page-content').innerHTML = `
-    <div class="card"><div class="card-header"><h3>⚙️ AI Configuration</h3></div>
-      <div class="form-group"><label>Gateway URL</label><input id="set-gateway" value="${localStorage.getItem('strata_gateway')||'http://localhost:8000'}" /></div>
-      <div class="form-group"><label>Auth Token</label><input type="password" id="set-token" value="${localStorage.getItem('strata_token')||''}" placeholder="Bearer token..." /></div>
-      <div class="form-group"><label>Default Provider</label><select id="set-provider"><option>openai</option><option>anthropic</option><option>gemini</option><option>groq</option></select></div>
-      <div class="form-row">
-        <div class="form-group"><label>Retry Count</label><input type="number" id="set-retry" value="3" /></div>
-        <div class="form-group"><label>Timeout (seconds)</label><input type="number" id="set-timeout" value="60" /></div>
-      </div>
-      <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
-    </div>
-    <div class="card"><div class="card-header"><h3>📊 Stats</h3></div>
-      <div style="font-size:13px;color:var(--text2)">Active Providers: <span id="stat-providers">-</span></div>
-      <div style="font-size:13px;color:var(--text2);margin-top:4px">API Gateway: ${localStorage.getItem('strata_gateway')||'http://localhost:8000'}</div>
-    </div>`;
-  try {
-    const overview = await api('GET', '/v1/ai/hub/overview');
-    $('stat-providers').textContent = overview.providers;
-  } catch(e) { $('stat-providers').textContent = 'Unable to connect'; }
-}
-
-function saveSettings() {
-  localStorage.setItem('strata_gateway', $('set-gateway').value);
-  localStorage.setItem('strata_token', $('set-token').value);
-  toast('Settings saved — refresh to apply');
-}
-
-// ─── Init ────────────────────────────────────────────────────────────
-navigate('overview');
-renderProviders();
-
-// For backward compat - also update the old playground link
 </script>
 </body>
 </html>

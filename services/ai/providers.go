@@ -1058,8 +1058,16 @@ func (a *GeminiAdapter) Embeddings(ctx context.Context, req *EmbeddingsRequest, 
 
 	embedReq := geminiEmbedReq{
 		Model: req.Model,
+		Content: struct {
+			Parts []struct {
+				Text string `json:"text"`
+			} `json:"parts"`
+		}{
+			Parts: []struct {
+				Text string `json:"text"`
+			}{{Text: req.Input[0]}},
+		},
 	}
-	embedReq.Content.Parts = []struct{ Text string }{{Text: req.Input[0]}}
 
 	data, err := json.Marshal(embedReq)
 	if err != nil {

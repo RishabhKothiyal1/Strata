@@ -1,6 +1,90 @@
 import { StrataAuthClient } from './auth';
 
 // ---------------------------------------------------------------------------
+// Embedding types
+// ---------------------------------------------------------------------------
+
+export interface EmbeddingsRequest {
+  provider?: string;
+  model?: string;
+  input: string[];
+}
+
+export interface EmbeddingsResponse {
+  model: string;
+  embeddings: number[][];
+  usage?: { prompt_tokens: number; total_tokens: number };
+}
+
+// ---------------------------------------------------------------------------
+// Hub types
+// ---------------------------------------------------------------------------
+
+export interface HubPrompt {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string;
+  category: string;
+  content: string;
+  variables: number;
+  version: number;
+  author: string;
+  tags: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HubAgent {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string;
+  system_prompt: string;
+  model: string;
+  temperature: number;
+  memory: boolean;
+  allowed_models: string[];
+  functions: string[];
+  knowledge_base: string;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AgentChatRequest {
+  message: string;
+  history?: ChatMessage[];
+}
+
+export interface AgentChatResponse {
+  response: string;
+  provider: string;
+  model: string;
+  latency_ms: number;
+  usage?: ChatUsage;
+}
+
+export interface HubWorkflow {
+  id: string;
+  user_id: string;
+  name: string;
+  nodes: any[];
+  edges: any[];
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkflowExecuteResponse {
+  message: string;
+  latency_ms: number;
+  nodes: number;
+  total_tokens: number;
+  outputs: Record<string, string>;
+}
+
+// ---------------------------------------------------------------------------
 // Provider types
 // ---------------------------------------------------------------------------
 
@@ -295,6 +379,94 @@ export class AICollectionClient {
 }
 
 // ---------------------------------------------------------------------------
+// Embeddings Client
+// ---------------------------------------------------------------------------
+
+export class StrataEmbeddingsClient {
+  constructor(private url: string, private auth: StrataAuthClient) {}
+
+  async generate(req: EmbeddingsRequest): Promise<EmbeddingsResponse> {
+    return api(`${this.url}/v1/ai/embeddings`, 'POST', req, this.auth);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Hub Clients (Prompts, Agents, Workflows)
+// ---------------------------------------------------------------------------
+
+export class StrataPromptsClient {
+  constructor(private url: string, private auth: StrataAuthClient) {}
+
+  async list(): Promise<HubPrompt[]> {
+    return api(`${this.url}/v1/ai/hub/prompts`, 'GET', null, this.auth);
+  }
+
+  async create(prompt: Partial<HubPrompt>): Promise<HubPrompt> {
+    return api(`${this.url}/v1/ai/hub/prompts`, 'POST', prompt, this.auth);
+  }
+
+  async update(id: string, prompt: Partial<HubPrompt>): Promise<HubPrompt> {
+    return api(`${this.url}/v1/ai/hub/prompts/${id}`, 'PUT', prompt, this.auth);
+  }
+
+  async delete(id: string): Promise<void> {
+    await api(`${this.url}/v1/ai/hub/prompts/${id}`, 'DELETE', null, this.auth);
+  }
+
+  async fork(id: string): Promise<HubPrompt> {
+    return api(`${this.url}/v1/ai/hub/prompts/${id}/fork`, 'POST', null, this.auth);
+  }
+}
+
+export class StrataAgentsClient {
+  constructor(private url: string, private auth: StrataAuthClient) {}
+
+  async list(): Promise<HubAgent[]> {
+    return api(`${this.url}/v1/ai/hub/agents`, 'GET', null, this.auth);
+  }
+
+  async create(agent: Partial<HubAgent>): Promise<HubAgent> {
+    return api(`${this.url}/v1/ai/hub/agents`, 'POST', agent, this.auth);
+  }
+
+  async update(id: string, agent: Partial<HubAgent>): Promise<void> {
+    await api(`${this.url}/v1/ai/hub/agents/${id}`, 'PUT', agent, this.auth);
+  }
+
+  async delete(id: string): Promise<void> {
+    await api(`${this.url}/v1/ai/hub/agents/${id}`, 'DELETE', null, this.auth);
+  }
+
+  async chat(id: string, req: AgentChatRequest): Promise<AgentChatResponse> {
+    return api(`${this.url}/v1/ai/hub/agents/${id}/chat`, 'POST', req, this.auth);
+  }
+}
+
+export class StrataWorkflowsClient {
+  constructor(private url: string, private auth: StrataAuthClient) {}
+
+  async list(): Promise<HubWorkflow[]> {
+    return api(`${this.url}/v1/ai/hub/workflows`, 'GET', null, this.auth);
+  }
+
+  async create(workflow: Partial<HubWorkflow>): Promise<HubWorkflow> {
+    return api(`${this.url}/v1/ai/hub/workflows`, 'POST', workflow, this.auth);
+  }
+
+  async update(id: string, workflow: Partial<HubWorkflow>): Promise<void> {
+    await api(`${this.url}/v1/ai/hub/workflows/${id}`, 'PUT', workflow, this.auth);
+  }
+
+  async delete(id: string): Promise<void> {
+    await api(`${this.url}/v1/ai/hub/workflows/${id}`, 'DELETE', null, this.auth);
+  }
+
+  async execute(id: string): Promise<WorkflowExecuteResponse> {
+    return api(`${this.url}/v1/ai/hub/workflows/${id}/execute`, 'POST', null, this.auth);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // StrataAIClient (main entry point)
 // ---------------------------------------------------------------------------
 
@@ -303,12 +475,20 @@ export class StrataAIClient {
   public chat: StrataChatClient;
   public models: StrataModelRegistry;
   public usage: StrataUsageClient;
+  public embed: StrataEmbeddingsClient;
+  public prompts: StrataPromptsClient;
+  public agents: StrataAgentsClient;
+  public workflows: StrataWorkflowsClient;
 
   constructor(private url: string, private auth: StrataAuthClient) {
     this.providers = new StrataProviderManager(url, auth);
     this.chat = new StrataChatClient(url, auth);
     this.models = new StrataModelRegistry(url, auth);
     this.usage = new StrataUsageClient(url, auth);
+    this.embed = new StrataEmbeddingsClient(url, auth);
+    this.prompts = new StrataPromptsClient(url, auth);
+    this.agents = new StrataAgentsClient(url, auth);
+    this.workflows = new StrataWorkflowsClient(url, auth);
   }
 
   // Legacy collection methods

@@ -8,11 +8,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash/fnv"
+	"io"
 	"log/slog"
 	"math"
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
@@ -187,6 +189,8 @@ func main() {
 	r.Post("/v1/ai/chat", s.handleChat)
 	r.Post("/v1/ai/chat/stream", s.handleChatStream)
 
+	r.Post("/v1/ai/embeddings", s.handleEmbeddings)
+
 	r.Get("/v1/ai/usage", s.handleGetUsage)
 
 	r.Get("/v1/ai/collections", s.handleListCollections)
@@ -194,6 +198,7 @@ func main() {
 	r.Delete("/v1/ai/collections/{name}", s.handleDeleteCollection)
 	r.Get("/v1/ai/collections/{name}/documents", s.handleListDocuments)
 	r.Post("/v1/ai/collections/{name}/documents", s.handleAddDocument)
+	r.Post("/v1/ai/collections/{name}/documents/upload", s.handleUploadDocument)
 	r.Delete("/v1/ai/collections/{name}/documents/{id}", s.handleDeleteDocument)
 	r.Post("/v1/ai/collections/{name}/search", s.handleSearch)
 
@@ -211,6 +216,7 @@ func main() {
 		r.Post("/agents", s.handleCreateAgent)
 		r.Put("/agents/{id}", s.handleUpdateAgent)
 		r.Delete("/agents/{id}", s.handleDeleteAgent)
+		r.Post("/agents/{id}/chat", s.handleAgentChat)
 
 		r.Get("/workflows", s.handleListWorkflows)
 		r.Post("/workflows", s.handleCreateWorkflow)
@@ -219,7 +225,9 @@ func main() {
 		r.Post("/workflows/{id}/execute", s.handleExecuteWorkflow)
 
 		r.Get("/costs", s.handleListCosts)
+		r.Post("/costs/budget", s.handleSetBudget)
 		r.Get("/logs", s.handleListLogs)
+		r.Get("/logs/export", s.handleExportLogs)
 		r.Get("/settings", s.handleHubSettings)
 		r.Put("/settings", s.handleHubSettings)
 	})
@@ -664,6 +672,69 @@ func (s *server) handleProviderModels(w http.ResponseWriter, r *http.Request) {
 }
 
 // ---------------------------------------------------------------------------
+// Handlers - Embeddings
+// ---------------------------------------------------------------------------
+
+type embeddingsReq struct {
+	Provider string   `json:"provider,omitempty"`
+	Model    string   `json:"model,omitempty"`
+	Input    []string `json:"input"`
+}
+
+func (s *server) handleEmbeddings(w http.ResponseWriter, r *http.Request) {
+	userID := userIDFromRequest(r)
+	var req embeddingsReq
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid JSON: "+err.Error())
+		return
+	}
+	if len(req.Input) == 0 {
+		writeError(w, http.StatusBadRequest, "input is required")
+		return
+	}
+
+	if req.Provider == "" {
+		primary, err := s.loadPrimaryProvider(r.Context(), userID)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, "no provider configured: "+err.Error())
+			return
+		}
+		req.Provider = primary
+	}
+
+	adapter, err := getProvider(req.Provider)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	cfg, err := s.loadProviderConfig(r.Context(), userID, req.Provider)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	embedReq := &EmbeddingsRequest{
+		Model: req.Model,
+		Input: req.Input,
+	}
+	if embedReq.Model == "" {
+		embedReq.Model = "text-embedding-3-small"
+	}
+
+	start := time.Now()
+	result, err := adapter.Embeddings(r.Context(), embedReq, cfg.APIKey, cfg.BaseURL)
+	latency := time.Since(start).Milliseconds()
+	if err != nil {
+		writeError(w, http.StatusBadGateway, "embeddings failed: "+err.Error())
+		return
+	}
+
+	logUsage(r.Context(), s.db, userID, req.Provider, embedReq.Model, latency, result.Usage.PromptTokens, 0, true, "")
+	writeJSON(w, http.StatusOK, result)
+}
+
+// ---------------------------------------------------------------------------
 // Handlers - Chat
 // ---------------------------------------------------------------------------
 
@@ -689,11 +760,9 @@ func (s *server) handleChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokens := 0
 	promptTokens := 0
 	completionTokens := 0
 	if result.Usage != nil {
-		tokens = result.Usage.TotalTokens
 		promptTokens = result.Usage.PromptTokens
 		completionTokens = result.Usage.CompletionTokens
 	}
@@ -1124,6 +1193,131 @@ func (s *server) handleDeleteDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]string{"message": "document deleted"})
+}
+
+func (s *server) handleUploadDocument(w http.ResponseWriter, r *http.Request) {
+	name := chi.URLParam(r, "name")
+	collID, err := s.collectionID(r.Context(), name)
+	if err != nil {
+		writeError(w, http.StatusNotFound, "collection not found")
+		return
+	}
+
+	r.Body = http.MaxBytesReader(w, r.Body, 50<<20) // 50MB max
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		writeError(w, http.StatusBadRequest, "file too large or invalid multipart: "+err.Error())
+		return
+	}
+
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "file field required: "+err.Error())
+		return
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "read failed: "+err.Error())
+		return
+	}
+
+	ext := strings.ToLower(filepath.Ext(header.Filename))
+	var content string
+	var detectedMeta map[string]interface{}
+
+	switch ext {
+	case ".pdf":
+		content = string(data)
+		detectedMeta = map[string]interface{}{"source": header.Filename, "type": "pdf", "size": len(data)}
+	case ".docx":
+		content = string(data)
+		detectedMeta = map[string]interface{}{"source": header.Filename, "type": "docx", "size": len(data)}
+	case ".txt", ".md", ".html", ".csv", ".json":
+		content = string(data)
+		detectedMeta = map[string]interface{}{"source": header.Filename, "type": ext[1:], "size": len(data)}
+	default:
+		content = string(data)
+		detectedMeta = map[string]interface{}{"source": header.Filename, "type": ext, "size": len(data)}
+	}
+
+	docID := uuid.New().String()
+	now := time.Now().UTC()
+	metaJSON, _ := json.Marshal(detectedMeta)
+
+	var totalDocs int
+	s.db.QueryRowContext(r.Context(), `SELECT COUNT(*) FROM ai_documents WHERE collection_id=$1`, collID).Scan(&totalDocs)
+
+	// Simple chunking for large documents
+	chunkSize := 2000
+	if len(content) > chunkSize {
+		words := []rune(content)
+		chunks := []string{}
+		for i := 0; i < len(words); i += chunkSize {
+			end := i + chunkSize
+			if end > len(words) {
+				end = len(words)
+			}
+			chunks = append(chunks, string(words[i:end]))
+		}
+		inserted := []Document{}
+		for _, chunk := range chunks {
+			vec := embed(chunk)
+			vecSQL := vectorToSQL(vec)
+			id := uuid.New().String()
+			chunkMeta, _ := json.Marshal(map[string]interface{}{
+				"source":       header.Filename,
+				"type":         ext[1:],
+				"size":         len(data),
+				"chunk":        len(inserted) + 1,
+				"total_chunks": len(chunks),
+			})
+			_, err := s.db.ExecContext(r.Context(), fmt.Sprintf(`
+				INSERT INTO ai_documents (id, collection_id, content, metadata, embedding, created_at)
+				VALUES ($1, $2, $3, $4, '%s'::vector, $5)
+			`, vecSQL), id, collID, chunk, string(chunkMeta), now)
+			if err == nil {
+				inserted = append(inserted, Document{
+					ID: id, CollectionID: collID, Content: chunk,
+					Metadata: map[string]interface{}{"source": header.Filename, "chunk": len(inserted) + 1},
+					CreatedAt: now,
+				})
+			}
+		}
+		writeJSON(w, http.StatusCreated, map[string]interface{}{
+			"message":       "file uploaded and chunked",
+			"filename":      header.Filename,
+			"type":          ext,
+			"size":          len(data),
+			"chunks":        len(inserted),
+			"total_docs":    totalDocs + len(inserted),
+			"documents":     inserted,
+		})
+		return
+	}
+
+	vec := embed(content)
+	vecSQL := vectorToSQL(vec)
+	_, err = s.db.ExecContext(r.Context(), fmt.Sprintf(`
+		INSERT INTO ai_documents (id, collection_id, content, metadata, embedding, created_at)
+		VALUES ($1, $2, $3, $4, '%s'::vector, $5)
+	`, vecSQL), docID, collID, content, string(metaJSON), now)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "insert failed: "+err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, map[string]interface{}{
+		"message":    "file uploaded",
+		"filename":   header.Filename,
+		"type":       ext,
+		"size":       len(data),
+		"total_docs": totalDocs + 1,
+		"document": Document{
+			ID: docID, CollectionID: collID, Content: content,
+			Metadata: detectedMeta, CreatedAt: now,
+		},
+	})
 }
 
 func (s *server) handleSearch(w http.ResponseWriter, r *http.Request) {

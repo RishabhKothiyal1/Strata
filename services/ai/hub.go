@@ -1,13 +1,10 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -172,6 +169,15 @@ func migrateHub(db *sql.DB) error {
 			tokens    INTEGER NOT NULL DEFAULT 0,
 			cost      REAL NOT NULL DEFAULT 0,
 			UNIQUE(user_id, provider, model, day)
+		)`,
+		`CREATE TABLE IF NOT EXISTS ai_settings (
+			id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			user_id      VARCHAR(255) NOT NULL,
+			setting_key  VARCHAR(128) NOT NULL,
+			setting_value TEXT NOT NULL DEFAULT '',
+			created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+			updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+			UNIQUE(user_id, setting_key)
 		)`,
 		`CREATE INDEX IF NOT EXISTS ai_logs_user_idx ON ai_logs(user_id, created_at DESC)`,
 		`CREATE INDEX IF NOT EXISTS ai_costs_user_idx ON ai_costs(user_id, day DESC)`,
@@ -420,6 +426,101 @@ func (s *server) handleDeleteAgent(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "deleted"})
 }
 
+func (s *server) handleAgentChat(w http.ResponseWriter, r *http.Request) {
+	userID := userIDFromRequest(r)
+	agentID := chi.URLParam(r, "id")
+
+	var agent HubAgent
+	err := s.db.QueryRowContext(r.Context(), `
+		SELECT id,user_id,name,system_prompt,model,temperature,memory,knowledge_base FROM ai_agents
+		WHERE id=$1 AND user_id=$2 AND enabled=true
+	`, agentID, userID).Scan(&agent.ID, &agent.UserID, &agent.Name, &agent.SystemPrompt, &agent.Model, &agent.Temperature, &agent.Memory, &agent.KnowledgeBase)
+	if err != nil {
+		writeError(w, http.StatusNotFound, "agent not found or disabled")
+		return
+	}
+
+	var req struct {
+		Message string `json:"message"`
+		History []ChatMessage `json:"history,omitempty"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid JSON")
+		return
+	}
+
+	messages := []ChatMessage{}
+	if agent.SystemPrompt != "" {
+		messages = append(messages, ChatMessage{Role: "system", Content: agent.SystemPrompt})
+	}
+	if len(req.History) > 0 {
+		messages = append(messages, req.History...)
+	}
+	messages = append(messages, ChatMessage{Role: "user", Content: req.Message})
+
+	provider := ""
+	model := agent.Model
+	if model == "" {
+		primary, err := s.loadPrimaryProvider(r.Context(), userID)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, "no provider configured")
+			return
+		}
+		provider = primary
+		modelInfo := getModelInfo(model)
+		if modelInfo != nil {
+			provider = modelInfo.Provider
+		}
+	}
+
+	modelInfo := getModelInfo(model)
+	if modelInfo != nil {
+		provider = modelInfo.Provider
+	}
+
+	cfg, err := s.loadProviderConfig(r.Context(), userID, provider)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	adapter, err := getProvider(provider)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	start := time.Now()
+	result, err := adapter.Chat(r.Context(), &ChatRequest{
+		Model:       model,
+		Messages:    messages,
+		Temperature: agent.Temperature,
+	}, cfg.APIKey, cfg.BaseURL)
+	latency := time.Since(start).Milliseconds()
+
+	if err != nil {
+		s.db.ExecContext(r.Context(), `INSERT INTO ai_logs (user_id,provider,model,latency_ms,tokens,status,error) VALUES ($1,$2,$3,$4,0,'error',$5)`,
+			userID, provider, model, latency, err.Error())
+		writeError(w, http.StatusBadGateway, err.Error())
+		return
+	}
+
+	tokens := 0
+	if result.Usage != nil {
+		tokens = result.Usage.TotalTokens
+	}
+	s.db.ExecContext(r.Context(), `INSERT INTO ai_logs (user_id,provider,model,latency_ms,tokens,status) VALUES ($1,$2,$3,$4,$5,'success')`,
+		userID, provider, model, latency, tokens)
+
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"response":   result.Choices[0].Message.Content,
+		"provider":   provider,
+		"model":      result.Model,
+		"latency_ms": latency,
+		"usage":      result.Usage,
+	})
+}
+
 // ---------------------------------------------------------------------------
 // Workflows
 // ---------------------------------------------------------------------------
@@ -434,43 +535,43 @@ func (s *server) handleListWorkflows(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	wfs := []HubWorkflow{}
 	for rows.Next() {
-		var w HubWorkflow
+		var wf HubWorkflow
 		var nodesJSON, edgesJSON []byte
-		if err := rows.Scan(&w.ID, &w.UserID, &w.Name, &nodesJSON, &edgesJSON, &w.Enabled, &w.CreatedAt, &w.UpdatedAt); err != nil {
+		if err := rows.Scan(&wf.ID, &wf.UserID, &wf.Name, &nodesJSON, &edgesJSON, &wf.Enabled, &wf.CreatedAt, &wf.UpdatedAt); err != nil {
 			writeError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		json.Unmarshal(nodesJSON, &w.Nodes)
-		json.Unmarshal(edgesJSON, &w.Edges)
-		wfs = append(wfs, w)
+		json.Unmarshal(nodesJSON, &wf.Nodes)
+		json.Unmarshal(edgesJSON, &wf.Edges)
+		wfs = append(wfs, wf)
 	}
 	writeJSON(w, http.StatusOK, wfs)
 }
 
 func (s *server) handleCreateWorkflow(w http.ResponseWriter, r *http.Request) {
 	userID := userIDFromRequest(r)
-	var w HubWorkflow
-	json.NewDecoder(r.Body).Decode(&w)
-	nodesJSON, _ := json.Marshal(w.Nodes)
-	edgesJSON, _ := json.Marshal(w.Edges)
+	var wf HubWorkflow
+	json.NewDecoder(r.Body).Decode(&wf)
+	nodesJSON, _ := json.Marshal(wf.Nodes)
+	edgesJSON, _ := json.Marshal(wf.Edges)
 	err := s.db.QueryRowContext(r.Context(), `INSERT INTO ai_workflows (user_id,name,nodes,edges) VALUES ($1,$2,$3,$4) RETURNING id,created_at,updated_at`,
-		userID, w.Name, string(nodesJSON), string(edgesJSON)).Scan(&w.ID, &w.CreatedAt, &w.UpdatedAt)
+		userID, wf.Name, string(nodesJSON), string(edgesJSON)).Scan(&wf.ID, &wf.CreatedAt, &wf.UpdatedAt)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	writeJSON(w, http.StatusCreated, w)
+	writeJSON(w, http.StatusCreated, wf)
 }
 
 func (s *server) handleUpdateWorkflow(w http.ResponseWriter, r *http.Request) {
 	userID := userIDFromRequest(r)
 	id := chi.URLParam(r, "id")
-	var w HubWorkflow
-	json.NewDecoder(r.Body).Decode(&w)
-	nodesJSON, _ := json.Marshal(w.Nodes)
-	edgesJSON, _ := json.Marshal(w.Edges)
+	var wf HubWorkflow
+	json.NewDecoder(r.Body).Decode(&wf)
+	nodesJSON, _ := json.Marshal(wf.Nodes)
+	edgesJSON, _ := json.Marshal(wf.Edges)
 	_, err := s.db.ExecContext(r.Context(), `UPDATE ai_workflows SET name=$1,nodes=$2,edges=$3,enabled=$4,updated_at=NOW() WHERE id=$5 AND user_id=$6`,
-		w.Name, string(nodesJSON), string(edgesJSON), w.Enabled, id, userID)
+		wf.Name, string(nodesJSON), string(edgesJSON), wf.Enabled, id, userID)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -493,39 +594,169 @@ func (s *server) handleExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
 	userID := userIDFromRequest(r)
 	id := chi.URLParam(r, "id")
 
-	var w HubWorkflow
+	var wf HubWorkflow
 	var nodesJSON, edgesJSON []byte
-	err := s.db.QueryRowContext(r.Context(), `SELECT id,user_id,name,nodes,edges FROM ai_workflows WHERE id=$1 AND user_id=$2`, id, userID).Scan(&w.ID, &w.UserID, &w.Name, &nodesJSON, &edgesJSON)
+	err := s.db.QueryRowContext(r.Context(), `SELECT id,user_id,name,nodes,edges FROM ai_workflows WHERE id=$1 AND user_id=$2`, id, userID).Scan(&wf.ID, &wf.UserID, &wf.Name, &nodesJSON, &edgesJSON)
 	if err != nil {
 		writeError(w, http.StatusNotFound, "workflow not found")
 		return
 	}
-	json.Unmarshal(nodesJSON, &w.Nodes)
-	json.Unmarshal(edgesJSON, &w.Edges)
+	json.Unmarshal(nodesJSON, &wf.Nodes)
+	json.Unmarshal(edgesJSON, &wf.Edges)
+
+	adj := map[string][]string{}
+	for _, e := range wf.Edges {
+		adj[e.Source] = append(adj[e.Source], e.Target)
+	}
+
+	inDegree := map[string]int{}
+	for _, e := range wf.Edges {
+		inDegree[e.Target]++
+	}
+	roots := []string{}
+	for _, n := range wf.Nodes {
+		if inDegree[n.ID] == 0 {
+			roots = append(roots, n.ID)
+		}
+	}
+
+	// Node outputs: map of nodeID -> output text
+	outputs := map[string]string{}
 
 	start := time.Now()
-	for _, node := range w.Nodes {
+	nodeMap := map[string]WorkflowNode{}
+	for _, n := range wf.Nodes {
+		nodeMap[n.ID] = n
+	}
+
+	// BFS execution
+	queue := append([]string{}, roots...)
+	visited := map[string]bool{}
+	totalTokens := 0
+
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+		if visited[current] {
+			continue
+		}
+		visited[current] = true
+
+		node, ok := nodeMap[current]
+		if !ok {
+			continue
+		}
+
 		switch node.Type {
 		case "prompt":
-			slog.Info("workflow: executing prompt node", "id", node.ID, "label", node.Label)
+			promptText := ""
+			if p, ok := node.Config["prompt"].(string); ok {
+				promptText = p
+			}
+			// Substitute variables from upstream outputs
+			for k, v := range outputs {
+				promptText = strings.ReplaceAll(promptText, "{{"+k+"}}", v)
+			}
+
+			provider := ""
+			if p, ok := node.Config["provider"].(string); ok {
+				provider = p
+			}
+			model := ""
+			if m, ok := node.Config["model"].(string); ok {
+				model = m
+			}
+
+			if provider == "" {
+				primary, err := s.loadPrimaryProvider(r.Context(), userID)
+				if err != nil {
+					outputs[current] = fmt.Sprintf("error: %v", err)
+					continue
+				}
+				provider = primary
+			}
+
+			cfg, err := s.loadProviderConfig(r.Context(), userID, provider)
+			if err != nil {
+				outputs[current] = fmt.Sprintf("error: %v", err)
+				continue
+			}
+
+			adapter, err := getProvider(provider)
+			if err != nil {
+				outputs[current] = fmt.Sprintf("error: %v", err)
+				continue
+			}
+
+			result, err := adapter.Chat(r.Context(), &ChatRequest{
+				Model:    model,
+				Messages: []ChatMessage{{Role: "user", Content: promptText}},
+			}, cfg.APIKey, cfg.BaseURL)
+			if err != nil {
+				outputs[current] = fmt.Sprintf("error: %v", err)
+				continue
+			}
+
+			output := ""
+			if len(result.Choices) > 0 {
+				output = result.Choices[0].Message.Content
+			}
+			outputs[current] = output
+			if result.Usage != nil {
+				totalTokens += result.Usage.TotalTokens
+			}
+
 		case "condition":
-			slog.Info("workflow: evaluating condition", "id", node.ID)
+			conditionExpr := ""
+			if c, ok := node.Config["condition"].(string); ok {
+				conditionExpr = c
+			}
+			for k, v := range outputs {
+				conditionExpr = strings.ReplaceAll(conditionExpr, "{{"+k+"}}", v)
+			}
+			// Simple evaluation: check if condition contains "true" or evaluates
+			result := "false"
+			if strings.Contains(strings.ToLower(conditionExpr), "true") ||
+				strings.EqualFold(conditionExpr, "true") {
+				result = "true"
+			}
+			outputs[current] = result
+
 		case "delay":
 			if ms, ok := node.Config["ms"].(float64); ok {
 				time.Sleep(time.Duration(ms) * time.Millisecond)
 			}
+			outputs[current] = "delayed"
+
+		case "function":
+			if fn, ok := node.Config["endpoint"].(string); ok && fn != "" {
+				httpReq, _ := http.NewRequestWithContext(r.Context(), "POST", fn, nil)
+				resp, err := http.DefaultClient.Do(httpReq)
+				if err == nil {
+					resp.Body.Close()
+					outputs[current] = fmt.Sprintf("called %s: HTTP %d", fn, resp.StatusCode)
+				} else {
+					outputs[current] = fmt.Sprintf("error: %v", err)
+				}
+			}
+		}
+
+		// Enqueue children
+		for _, child := range adj[current] {
+			queue = append(queue, child)
 		}
 	}
-	latency := time.Since(start).Milliseconds()
 
-	// Log execution
-	s.db.ExecContext(r.Context(), `INSERT INTO ai_logs (user_id,provider,model,latency_ms,tokens,status) VALUES ($1,'workflow',$2,$3,0,'success')`,
-		userID, w.Name, latency)
+	latency := time.Since(start).Milliseconds()
+	s.db.ExecContext(r.Context(), `INSERT INTO ai_logs (user_id,provider,model,latency_ms,tokens,status) VALUES ($1,'workflow',$2,$3,$4,'success')`,
+		userID, wf.Name, latency, totalTokens)
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"message":    "workflow executed",
-		"latency_ms": latency,
-		"nodes":      len(w.Nodes),
+		"message":      "workflow executed",
+		"latency_ms":   latency,
+		"nodes":        len(wf.Nodes),
+		"total_tokens": totalTokens,
+		"outputs":      outputs,
 	})
 }
 
@@ -546,6 +777,7 @@ func (s *server) handleListCosts(w http.ResponseWriter, r *http.Request) {
 		dayFilter = "AND day > NOW() - INTERVAL '7 days'"
 	}
 
+	// Grouped by provider+model
 	rows, err := s.db.QueryContext(r.Context(), fmt.Sprintf(`
 		SELECT provider,model,SUM(requests),SUM(tokens),SUM(cost)
 		FROM ai_costs WHERE user_id=$1 %s GROUP BY provider,model ORDER BY SUM(cost) DESC
@@ -569,7 +801,61 @@ func (s *server) handleListCosts(w http.ResponseWriter, r *http.Request) {
 		rows.Scan(&c.Provider, &c.Model, &c.Requests, &c.Tokens, &c.Cost)
 		results = append(results, c)
 	}
-	writeJSON(w, http.StatusOK, results)
+
+	// Daily time-series for charts
+	seriesRows, err := s.db.QueryContext(r.Context(), fmt.Sprintf(`
+		SELECT day::TEXT, SUM(requests), SUM(tokens), SUM(cost)
+		FROM ai_costs WHERE user_id=$1 %s GROUP BY day ORDER BY day ASC
+	`, dayFilter), userID)
+	series := []map[string]interface{}{}
+	if err == nil {
+		defer seriesRows.Close()
+		for seriesRows.Next() {
+			var d string
+			var reqs, tok int
+			var cst float64
+			seriesRows.Scan(&d, &reqs, &tok, &cst)
+			series = append(series, map[string]interface{}{
+				"day": d, "requests": reqs, "tokens": tok, "cost": cst,
+			})
+		}
+	}
+
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"breakdown": results,
+		"series":    series,
+	})
+}
+
+func (s *server) handleSetBudget(w http.ResponseWriter, r *http.Request) {
+	userID := userIDFromRequest(r)
+	var req struct {
+		MonthlyLimit float64 `json:"monthly_limit"`
+		AlertAt      float64 `json:"alert_at"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid JSON")
+		return
+	}
+	_, err := s.db.ExecContext(r.Context(), `
+		INSERT INTO ai_settings (user_id, setting_key, setting_value)
+		VALUES ($1, 'budget_monthly', $2::TEXT)
+		ON CONFLICT (user_id, setting_key) DO UPDATE SET setting_value = $2::TEXT, updated_at = NOW()
+	`, userID, fmt.Sprintf("%f", req.MonthlyLimit))
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	_, err = s.db.ExecContext(r.Context(), `
+		INSERT INTO ai_settings (user_id, setting_key, setting_value)
+		VALUES ($1, 'budget_alert_at', $2::TEXT)
+		ON CONFLICT (user_id, setting_key) DO UPDATE SET setting_value = $2::TEXT, updated_at = NOW()
+	`, userID, fmt.Sprintf("%f", req.AlertAt))
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"message": "budget set"})
 }
 
 // ---------------------------------------------------------------------------
@@ -618,11 +904,48 @@ func (s *server) handleListLogs(w http.ResponseWriter, r *http.Request) {
 		logs = append(logs, l)
 	}
 	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"data":  logs,
-		"total": total,
-		"limit": limit,
+		"data":   logs,
+		"total":  total,
+		"limit":  limit,
 		"offset": offset,
 	})
+}
+
+func (s *server) handleExportLogs(w http.ResponseWriter, r *http.Request) {
+	userID := userIDFromRequest(r)
+	format := r.URL.Query().Get("format")
+	if format == "" {
+		format = "json"
+	}
+
+	rows, err := s.db.QueryContext(r.Context(), `
+		SELECT id,user_id,provider,model,prompt_id,latency_ms,tokens,cost,status,error,created_at
+		FROM ai_logs WHERE user_id=$1 ORDER BY created_at DESC LIMIT 10000
+	`, userID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer rows.Close()
+
+	logs := []HubLog{}
+	for rows.Next() {
+		var l HubLog
+		rows.Scan(&l.ID, &l.UserID, &l.Provider, &l.Model, &l.PromptID, &l.LatencyMs, &l.Tokens, &l.Cost, &l.Status, &l.Error, &l.CreatedAt)
+		logs = append(logs, l)
+	}
+
+	if format == "csv" {
+		w.Header().Set("Content-Type", "text/csv")
+		w.Header().Set("Content-Disposition", "attachment; filename=ai-logs.csv")
+		w.Write([]byte("id,user_id,provider,model,latency_ms,tokens,cost,status,error,created_at\n"))
+		for _, l := range logs {
+			line := fmt.Sprintf("%s,%s,%s,%s,%d,%d,%.4f,%s,%s,%s\n", l.ID, l.UserID, l.Provider, l.Model, l.LatencyMs, l.Tokens, l.Cost, l.Status, l.Error, l.CreatedAt.Format(time.RFC3339))
+			w.Write([]byte(line))
+		}
+		return
+	}
+	writeJSON(w, http.StatusOK, logs)
 }
 
 // ---------------------------------------------------------------------------
@@ -633,23 +956,48 @@ func (s *server) handleHubSettings(w http.ResponseWriter, r *http.Request) {
 	userID := userIDFromRequest(r)
 	switch r.Method {
 	case "GET":
-		var settings struct {
-			DefaultProvider string `json:"default_provider"`
-			FallbackOrder   string `json:"fallback_order"`
-			RetryCount      int    `json:"retry_count"`
-			Timeout         int    `json:"timeout"`
-			Streaming       bool   `json:"streaming"`
+		type Setting struct {
+			Key   string `json:"key"`
+			Value string `json:"value"`
 		}
-		settings.DefaultProvider = "openai"
-		settings.RetryCount = 3
-		settings.Timeout = 60
-		settings.Streaming = true
-		s.db.QueryRowContext(r.Context(), `SELECT provider FROM ai_provider_keys WHERE user_id=$1 AND is_primary=true`, userID).Scan(&settings.DefaultProvider)
+		rows, err := s.db.QueryContext(r.Context(), `SELECT setting_key, setting_value FROM ai_settings WHERE user_id=$1`, userID)
+		settings := map[string]string{
+			"default_provider": "openai",
+			"retry_count":      "3",
+			"timeout":          "60",
+			"streaming":        "true",
+			"budget_monthly":   "0",
+			"budget_alert_at":  "0",
+		}
+		if err == nil {
+			defer rows.Close()
+			for rows.Next() {
+				var k, v string
+				rows.Scan(&k, &v)
+				settings[k] = v
+			}
+		}
+		var defaultProvider string
+		s.db.QueryRowContext(r.Context(), `SELECT provider FROM ai_provider_keys WHERE user_id=$1 AND is_primary=true`, userID).Scan(&defaultProvider)
+		if defaultProvider != "" {
+			settings["default_provider"] = defaultProvider
+		}
 		writeJSON(w, http.StatusOK, settings)
 	case "PUT":
-		var s map[string]interface{}
-		json.NewDecoder(r.Body).Decode(&s)
-		writeJSON(w, http.StatusOK, map[string]string{"message": "settings updated"})
+		var incoming map[string]interface{}
+		if err := json.NewDecoder(r.Body).Decode(&incoming); err != nil {
+			writeError(w, http.StatusBadRequest, "invalid JSON")
+			return
+		}
+		for k, v := range incoming {
+			val := fmt.Sprintf("%v", v)
+			s.db.ExecContext(r.Context(), `
+				INSERT INTO ai_settings (user_id, setting_key, setting_value)
+				VALUES ($1, $2, $3)
+				ON CONFLICT (user_id, setting_key) DO UPDATE SET setting_value = $3, updated_at = NOW()
+			`, userID, k, val)
+		}
+		writeJSON(w, http.StatusOK, map[string]string{"message": "settings saved"})
 	}
 }
 
