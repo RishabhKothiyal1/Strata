@@ -125,7 +125,7 @@ When the Docker Compose environment is started, the following mappings are expos
 ### Running Strata
 1.  **Clone this repository**:
     ```bash
-    git clone https://github.com/RishabhKothiyal1/strata.git
+    git clone https://github.com/RishabhKothiyal1/Strata.git
     cd strata
     ```
 2.  **Set up environment configuration**:
