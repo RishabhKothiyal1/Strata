@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -18,6 +19,7 @@ import (
 
 type ProviderAdapter interface {
 	Chat(ctx context.Context, req *ChatRequest, apiKey string, baseURL string) (*ChatResponse, error)
+	ChatStream(ctx context.Context, req *ChatRequest, apiKey string, baseURL string, onChunk func(StreamChunk)) error
 	Embeddings(ctx context.Context, req *EmbeddingsRequest, apiKey string, baseURL string) (*EmbeddingsResponse, error)
 	Models(ctx context.Context, apiKey string, baseURL string) ([]string, error)
 	ValidateKey(ctx context.Context, apiKey string, baseURL string) error
@@ -320,6 +322,69 @@ func (a *OpenAIAdapter) Models(ctx context.Context, apiKey string, baseURL strin
 		models[i] = m.ID
 	}
 	return models, nil
+}
+
+func (a *OpenAIAdapter) ChatStream(ctx context.Context, req *ChatRequest, apiKey string, baseURL string, onChunk func(StreamChunk)) error {
+	if baseURL == "" {
+		baseURL = defaultBaseURLs["openai"]
+	}
+	body := openAIChatReq{
+		Model:       req.Model,
+		Messages:    req.Messages,
+		Temperature: req.Temperature,
+		MaxTokens:   req.MaxTokens,
+		Stream:      true,
+	}
+	data, err := json.Marshal(body)
+	if err != nil {
+		return fmt.Errorf("marshal: %w", err)
+	}
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", a.chatURL(baseURL), bytes.NewReader(data))
+	if err != nil {
+		return fmt.Errorf("request: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+	httpReq.Header.Set("Authorization", "Bearer "+apiKey)
+	httpReq.Header.Set("Accept", "text/event-stream")
+
+	resp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		bodyData, _ := io.ReadAll(resp.Body)
+		return parseProviderError(resp.StatusCode, bodyData)
+	}
+
+	scanner := bufio.NewScanner(resp.Body)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if !strings.HasPrefix(line, "data: ") {
+			continue
+		}
+		data := strings.TrimPrefix(line, "data: ")
+		if data == "[DONE]" {
+			onChunk(StreamChunk{Content: "", Done: true})
+			return nil
+		}
+		var streamResp struct {
+			Choices []struct {
+				Delta struct {
+					Content string `json:"content"`
+				} `json:"delta"`
+				FinishReason *string `json:"finish_reason"`
+			} `json:"choices"`
+		}
+		if err := json.Unmarshal([]byte(data), &streamResp); err != nil {
+			continue
+		}
+		if len(streamResp.Choices) > 0 {
+			onChunk(StreamChunk{Content: streamResp.Choices[0].Delta.Content})
+		}
+	}
+	return scanner.Err()
 }
 
 func (a *OpenAIAdapter) ValidateKey(ctx context.Context, apiKey string, baseURL string) error {
@@ -637,6 +702,89 @@ func (a *AnthropicAdapter) Chat(ctx context.Context, req *ChatRequest, apiKey st
 	}, nil
 }
 
+func (a *AnthropicAdapter) ChatStream(ctx context.Context, req *ChatRequest, apiKey string, baseURL string, onChunk func(StreamChunk)) error {
+	if baseURL == "" {
+		baseURL = defaultBaseURLs["anthropic"]
+	}
+
+	systemMsg := ""
+	messages := make([]ChatMessage, 0)
+	for _, m := range req.Messages {
+		if m.Role == "system" {
+			systemMsg = m.Content
+		} else {
+			messages = append(messages, m)
+		}
+	}
+
+	body := map[string]interface{}{
+		"model":      req.Model,
+		"max_tokens": req.MaxTokens,
+		"messages":   messages,
+		"stream":     true,
+	}
+	if systemMsg != "" {
+		body["system"] = systemMsg
+	}
+	if req.Temperature > 0 {
+		body["temperature"] = req.Temperature
+	}
+
+	data, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", baseURL+"/messages", bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+	httpReq.Header.Set("x-api-key", apiKey)
+	httpReq.Header.Set("anthropic-version", "2023-06-01")
+	httpReq.Header.Set("Accept", "text/event-stream")
+
+	resp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		bodyData, _ := io.ReadAll(resp.Body)
+		return parseProviderError(resp.StatusCode, bodyData)
+	}
+
+	scanner := bufio.NewScanner(resp.Body)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if !strings.HasPrefix(line, "data: ") {
+			continue
+		}
+		data := strings.TrimPrefix(line, "data: ")
+		if data == "[DONE]" {
+			onChunk(StreamChunk{Content: "", Done: true})
+			return nil
+		}
+		var event struct {
+			Type  string `json:"type"`
+			Delta struct {
+				Text string `json:"text"`
+			} `json:"delta"`
+		}
+		if err := json.Unmarshal([]byte(data), &event); err != nil {
+			continue
+		}
+		if event.Type == "content_block_delta" {
+			onChunk(StreamChunk{Content: event.Delta.Text})
+		}
+		if event.Type == "message_stop" {
+			onChunk(StreamChunk{Content: "", Done: true})
+			return nil
+		}
+	}
+	return scanner.Err()
+}
+
 func (a *AnthropicAdapter) Embeddings(ctx context.Context, req *EmbeddingsRequest, apiKey string, baseURL string) (*EmbeddingsResponse, error) {
 	return nil, fmt.Errorf("embeddings not directly supported by Anthropic API")
 }
@@ -791,6 +939,104 @@ func (a *GeminiAdapter) Chat(ctx context.Context, req *ChatRequest, apiKey strin
 			TotalTokens:      geminiResp.UsageMetadata.TotalTokenCount,
 		},
 	}, nil
+}
+
+func (a *GeminiAdapter) ChatStream(ctx context.Context, req *ChatRequest, apiKey string, baseURL string, onChunk func(StreamChunk)) error {
+	if baseURL == "" {
+		baseURL = defaultBaseURLs["gemini"]
+	}
+
+	systemInstruction := ""
+	contents := make([]geminiContent, 0)
+	for _, m := range req.Messages {
+		if m.Role == "system" {
+			systemInstruction = m.Content
+		} else {
+			gRole := "user"
+			if m.Role == "assistant" || m.Role == "model" {
+				gRole = "model"
+			}
+			contents = append(contents, geminiContent{
+				Role:  gRole,
+				Parts: []geminiPart{{Text: m.Content}},
+			})
+		}
+	}
+
+	body := map[string]interface{}{
+		"contents": contents,
+	}
+	if systemInstruction != "" {
+		body["system_instruction"] = map[string]interface{}{
+			"parts": []map[string]string{{"text": systemInstruction}},
+		}
+	}
+	if req.Temperature > 0 {
+		body["generationConfig"] = map[string]interface{}{
+			"temperature":    req.Temperature,
+			"maxOutputTokens": req.MaxTokens,
+		}
+	}
+
+	data, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+
+	url := fmt.Sprintf("%s/models/%s:streamGenerateContent?key=%s&alt=sse", baseURL, req.Model, apiKey)
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+	httpReq.Header.Set("Accept", "text/event-stream")
+
+	resp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		bodyData, _ := io.ReadAll(resp.Body)
+		return parseProviderError(resp.StatusCode, bodyData)
+	}
+
+	scanner := bufio.NewScanner(resp.Body)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if !strings.HasPrefix(line, "data: ") {
+			continue
+		}
+		data := strings.TrimPrefix(line, "data: ")
+		if data == "[DONE]" {
+			onChunk(StreamChunk{Content: "", Done: true})
+			return nil
+		}
+		var geminiResp struct {
+			Candidates []struct {
+				Content struct {
+					Parts []struct {
+						Text string `json:"text"`
+					} `json:"parts"`
+				} `json:"content"`
+				FinishReason string `json:"finishReason"`
+			} `json:"candidates"`
+		}
+		if err := json.Unmarshal([]byte(data), &geminiResp); err != nil {
+			continue
+		}
+		if len(geminiResp.Candidates) > 0 {
+			for _, p := range geminiResp.Candidates[0].Content.Parts {
+				onChunk(StreamChunk{Content: p.Text})
+			}
+			if geminiResp.Candidates[0].FinishReason != "" {
+				onChunk(StreamChunk{Content: "", Done: true})
+				return nil
+			}
+		}
+	}
+	return scanner.Err()
 }
 
 func (a *GeminiAdapter) Embeddings(ctx context.Context, req *EmbeddingsRequest, apiKey string, baseURL string) (*EmbeddingsResponse, error) {
@@ -953,6 +1199,69 @@ func (a *CohereAdapter) Chat(ctx context.Context, req *ChatRequest, apiKey strin
 		}
 	}
 	return result, nil
+}
+
+func (a *CohereAdapter) ChatStream(ctx context.Context, req *ChatRequest, apiKey string, baseURL string, onChunk func(StreamChunk)) error {
+	if baseURL == "" {
+		baseURL = defaultBaseURLs["cohere"]
+	}
+	body := map[string]interface{}{
+		"model":       req.Model,
+		"messages":    req.Messages,
+		"temperature": req.Temperature,
+		"max_tokens":  req.MaxTokens,
+		"stream":      true,
+	}
+	data, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", baseURL+"/chat", bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+	httpReq.Header.Set("Authorization", "Bearer "+apiKey)
+	httpReq.Header.Set("Accept", "text/event-stream")
+
+	resp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		bodyData, _ := io.ReadAll(resp.Body)
+		return parseProviderError(resp.StatusCode, bodyData)
+	}
+
+	scanner := bufio.NewScanner(resp.Body)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if !strings.HasPrefix(line, "data: ") {
+			continue
+		}
+		data := strings.TrimPrefix(line, "data: ")
+		if data == "[DONE]" {
+			onChunk(StreamChunk{Content: "", Done: true})
+			return nil
+		}
+		var event struct {
+			Type string `json:"type"`
+			Text string `json:"text"`
+		}
+		if err := json.Unmarshal([]byte(data), &event); err != nil {
+			continue
+		}
+		if event.Type == "text" {
+			onChunk(StreamChunk{Content: event.Text})
+		}
+		if event.Type == "end" {
+			onChunk(StreamChunk{Content: "", Done: true})
+			return nil
+		}
+	}
+	return scanner.Err()
 }
 
 func (a *CohereAdapter) Embeddings(ctx context.Context, req *EmbeddingsRequest, apiKey string, baseURL string) (*EmbeddingsResponse, error) {

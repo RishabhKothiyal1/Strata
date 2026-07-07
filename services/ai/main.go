@@ -162,6 +162,10 @@ func main() {
 		slog.Error("Database migration failed", "error", err)
 		os.Exit(1)
 	}
+	if err := migrateHub(db); err != nil {
+		slog.Error("Hub migration failed", "error", err)
+		os.Exit(1)
+	}
 
 	s := &server{db: db}
 	r := chi.NewRouter()
@@ -192,6 +196,33 @@ func main() {
 	r.Post("/v1/ai/collections/{name}/documents", s.handleAddDocument)
 	r.Delete("/v1/ai/collections/{name}/documents/{id}", s.handleDeleteDocument)
 	r.Post("/v1/ai/collections/{name}/search", s.handleSearch)
+
+	// AI Hub routes
+	r.Route("/v1/ai/hub", func(r chi.Router) {
+		r.Get("/overview", s.handleHubOverview)
+
+		r.Get("/prompts", s.handleListPrompts)
+		r.Post("/prompts", s.handleCreatePrompt)
+		r.Put("/prompts/{id}", s.handleUpdatePrompt)
+		r.Delete("/prompts/{id}", s.handleDeletePrompt)
+		r.Post("/prompts/{id}/fork", s.handleForkPrompt)
+
+		r.Get("/agents", s.handleListAgents)
+		r.Post("/agents", s.handleCreateAgent)
+		r.Put("/agents/{id}", s.handleUpdateAgent)
+		r.Delete("/agents/{id}", s.handleDeleteAgent)
+
+		r.Get("/workflows", s.handleListWorkflows)
+		r.Post("/workflows", s.handleCreateWorkflow)
+		r.Put("/workflows/{id}", s.handleUpdateWorkflow)
+		r.Delete("/workflows/{id}", s.handleDeleteWorkflow)
+		r.Post("/workflows/{id}/execute", s.handleExecuteWorkflow)
+
+		r.Get("/costs", s.handleListCosts)
+		r.Get("/logs", s.handleListLogs)
+		r.Get("/settings", s.handleHubSettings)
+		r.Put("/settings", s.handleHubSettings)
+	})
 
 	srv := &http.Server{
 		Addr:         port,
@@ -689,10 +720,6 @@ func (s *server) handleChatStream(w http.ResponseWriter, r *http.Request) {
 	}
 	req.Stream = true
 
-	w.Header().Set("Content-Type", "text/event-stream")
-	w.Header().Set("Cache-Control", "no-cache")
-	w.Header().Set("Connection", "keep-alive")
-
 	flusher, ok := w.(http.Flusher)
 	if !ok {
 		writeError(w, http.StatusInternalServerError, "streaming not supported")
@@ -729,6 +756,12 @@ func (s *server) handleChatStream(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.WriteHeader(http.StatusOK)
+	flusher.Flush()
+
 	chatReq := &ChatRequest{
 		Model:       req.Model,
 		Messages:    req.Messages,
@@ -737,18 +770,22 @@ func (s *server) handleChatStream(w http.ResponseWriter, r *http.Request) {
 		Stream:      true,
 	}
 
-	_, err = adapter.Chat(r.Context(), chatReq, cfg.APIKey, cfg.BaseURL)
+	chunkCount := 0
+	err = adapter.ChatStream(r.Context(), chatReq, cfg.APIKey, cfg.BaseURL, func(chunk StreamChunk) {
+		data, _ := json.Marshal(chunk)
+		fmt.Fprintf(w, "data: %s\n\n", data)
+		flusher.Flush()
+		chunkCount++
+	})
+
 	latency := time.Since(start).Milliseconds()
 
 	if err != nil {
 		logUsage(r.Context(), s.db, userID, providerName, req.Model, latency, 0, 0, false, err.Error())
-		writeError(w, http.StatusBadGateway, err.Error())
 		return
 	}
 
-	logUsage(r.Context(), s.db, userID, providerName, req.Model, latency, 0, 0, true, "")
-	fmt.Fprintf(w, "data: {\"done\":true}\n\n")
-	flusher.Flush()
+	logUsage(r.Context(), s.db, userID, providerName, req.Model, latency, chunkCount, chunkCount, true, "")
 }
 
 func (s *server) executeChat(ctx context.Context, userID string, req *chatReq) (*ChatResponse, string, error) {
@@ -986,10 +1023,17 @@ func (s *server) handleListDocuments(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+
+	limit := clampInt(r.URL.Query().Get("limit"), 50, 1, 500)
+	offset := clampInt(r.URL.Query().Get("offset"), 0, 0, 10000)
+
+	var total int
+	s.db.QueryRowContext(r.Context(), `SELECT COUNT(*) FROM ai_documents WHERE collection_id=$1`, collID).Scan(&total)
+
 	rows, err := s.db.QueryContext(r.Context(), `
 		SELECT id, collection_id, content, metadata, created_at
-		FROM ai_documents WHERE collection_id=$1 ORDER BY created_at DESC
-	`, collID)
+		FROM ai_documents WHERE collection_id=$1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
+	`, collID, limit, offset)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -1006,7 +1050,12 @@ func (s *server) handleListDocuments(w http.ResponseWriter, r *http.Request) {
 		json.Unmarshal(metaRaw, &d.Metadata)
 		docs = append(docs, d)
 	}
-	writeJSON(w, http.StatusOK, docs)
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"data":   docs,
+		"total":  total,
+		"limit":  limit,
+		"offset": offset,
+	})
 }
 
 func (s *server) handleAddDocument(w http.ResponseWriter, r *http.Request) {
@@ -1145,6 +1194,17 @@ func writeJSON(w http.ResponseWriter, status int, v interface{}) {
 
 func writeError(w http.ResponseWriter, status int, msg string) {
 	writeJSON(w, status, map[string]string{"error": msg})
+}
+
+func clampInt(s string, defaultVal, minVal, maxVal int) int {
+	val, err := strconv.Atoi(s)
+	if err != nil || val < minVal {
+		return defaultVal
+	}
+	if val > maxVal {
+		return maxVal
+	}
+	return val
 }
 
 // GenerateEncryptionKey generates a 32-byte hex key for ENCRYPTION_KEY env var

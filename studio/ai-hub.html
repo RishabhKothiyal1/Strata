@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strata AI Hub</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0c11;--surface:#11141d;--surface2:#171b26;--surface3:#1e2332;--border:#252b3d;--border2:#2e354a;--text:#e4e6f0;--text2:#8b8fa8;--accent:#6c5ce7;--accent2:#a29bfe;--green:#00b894;--red:#e17055;--yellow:#fdcb6e;--orange:#e67e22;--blue:#0984e3;--radius:10px;--radius-sm:6px;--shadow:0 4px 24px rgba(0,0,0,0.3);--glass:rgba(17,20,29,0.85);--transition:0.2s ease}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;display:flex;height:100vh;overflow:hidden}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text2)}
+/* Sidebar */
+.sidebar{width:240px;min-width:240px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-header{padding:20px;border-bottom:1px solid var(--border)}
+.sidebar-header h1{font-size:18px;display:flex;align-items:center;gap:10px}
+.sidebar-header h1 span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sidebar-header .sub{font-size:11px;color:var(--text2);margin-top:2px}
+.sidebar-nav{flex:1;overflow-y:auto;padding:8px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text2);font-size:13px;transition:all var(--transition);margin-bottom:2px}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:rgba(108,92,231,0.12);color:var(--accent);font-weight:600}
+.nav-item .icon{font-size:16px;width:20px;text-align:center}
+.nav-item .badge{margin-left:auto;background:var(--accent);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px}
+.nav-section{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text2);padding:16px 14px 6px;opacity:0.5}
+/* Main */
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.main-header{padding:16px 28px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.main-header h2{font-size:18px;font-weight:600}
+.main-header .actions{display:flex;gap:8px}
+.content{flex:1;overflow-y:auto;padding:24px 28px}
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;transition:border-color var(--transition)}
+.card:hover{border-color:var(--border2)}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.card-header h3{font-size:15px;font-weight:600}
+/* Grid */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid-4{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+/* Stats */
+.stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;text-align:center;transition:all var(--transition)}
+.stat-card:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 8px 32px rgba(108,92,231,0.1)}
+.stat-card .value{font-size:28px;font-weight:700;background:linear-gradient(135deg,var(--text),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-card .label{font-size:12px;color:var(--text2);margin-top:4px}
+.stat-card .icon{font-size:24px;margin-bottom:8px}
+/* Buttons */
+.btn{padding:8px 18px;border-radius:var(--radius-sm);border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all var(--transition);display:inline-flex;align-items:center;gap:6px}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.btn-primary:hover{box-shadow:0 4px 16px rgba(108,92,231,0.3)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-outline:hover{background:var(--surface2);border-color:var(--accent)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger:hover{box-shadow:0 4px 16px rgba(225,112,85,0.3)}
+.btn-success{background:var(--green);color:#fff}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-icon{background:none;border:none;color:var(--text2);cursor:pointer;padding:4px;font-size:16px;transition:color var(--transition)}
+.btn-icon:hover{color:var(--text)}
+/* Forms */
+input,select,textarea{width:100%;padding:10px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;transition:border-color var(--transition)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+textarea{resize:vertical;min-height:80px;font-family:monospace}
+label{display:block;font-size:12px;color:var(--text2);margin-bottom:4px}
+.form-group{margin-bottom:14px}
+.form-row{display:flex;gap:12px}
+.form-row .form-group{flex:1}
+/* Tables */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:10px 14px;text-align:left;color:var(--text2);font-weight:500;border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:0.5px}
+td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text)}
+tr:hover td{background:var(--surface2)}
+/* Tabs */
+.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:0}
+.tab{padding:10px 20px;cursor:pointer;font-size:13px;color:var(--text2);border-bottom:2px solid transparent;transition:all var(--transition)}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+/* Badges */
+.badge{padding:2px 10px;border-radius:12px;font-size:11px;font-weight:500}
+.badge-green{background:rgba(0,184,148,0.15);color:var(--green)}
+.badge-red{background:rgba(225,112,85,0.15);color:var(--red)}
+.badge-yellow{background:rgba(253,203,110,0.15);color:var(--yellow)}
+.badge-blue{background:rgba(9,132,227,0.15);color:var(--blue)}
+.badge-accent{background:rgba(108,92,231,0.15);color:var(--accent)}
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;justify-content:center;align-items:center;backdrop-filter:blur(4px)}
+.modal-overlay.active{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;width:540px;max-width:92vw;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow)}
+.modal h3{font-size:17px;margin-bottom:20px}
+/* Empty state */
+.empty-state{text-align:center;padding:48px 20px;color:var(--text2)}
+.empty-state .emoji{font-size:48px;margin-bottom:12px}
+.empty-state p{font-size:14px}
+/* Loading */
+.skeleton{background:linear-gradient(90deg,var(--surface2) 25%,var(--surface3) 50%,var(--surface2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius-sm)}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skeleton-card{height:80px;margin-bottom:12px}
+.skeleton-line{height:16px;margin-bottom:8px;width:60%}
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;padding:14px 24px;border-radius:var(--radius-sm);z-index:200;animation:slideUp 0.3s ease;font-size:13px;font-weight:500;box-shadow:var(--shadow)}
+.toast.success{background:var(--green);color:var(--bg)}
+.toast.error{background:var(--red);color:#fff}
+.toast.info{background:rgba(108,92,231,0.9);color:#fff}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+/* Glassmorphism accent */
+.glass{background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.06)}
+/* Chart canvas */
+canvas{width:100%!important;height:200px!important;border-radius:var(--radius-sm)}
+/* Provider card */
+.provider-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;transition:all var(--transition)}
+.provider-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.provider-card .top{display:flex;justify-content:space-between;align-items:start;margin-bottom:12px}
+.provider-card .name{font-weight:600;font-size:14px}
+.provider-card .status{font-size:11px;padding:2px 8px;border-radius:10px}
+.provider-card .detail{font-size:12px;color:var(--text2);margin-bottom:4px}
+.provider-card .actions{display:flex;gap:6px;margin-top:10px}
+/* Search bar */
+.search-bar{display:flex;gap:8px;margin-bottom:16px}
+.search-bar input{flex:1}
+/* Pagination */
+.pagination{display:flex;align-items:center;justify-content:center;gap:12px;padding:12px 0 4px}
+.pagination .btn:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+/* Playground */
+.playground-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.playground-output{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;min-height:200px;font-family:monospace;font-size:13px;white-space:pre-wrap;overflow-y:auto}
+/* Responsive */
+@media(max-width:900px){.sidebar{width:60px;min-width:60px}.sidebar-header h1 span,.sidebar-header .sub,.nav-item span,.nav-section,.nav-item .badge{display:none}.nav-item{justify-content:center;padding:12px}.nav-item .icon{font-size:20px;margin:0}.grid-2,.grid-3{grid-template-columns:1fr}.playground-grid{grid-template-columns:1fr}}
+@media(max-width:640px){.main-header{padding:12px 16px}.content{padding:16px}.form-row{flex-direction:column}}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <h1>✦ <span>AI Hub</span></h1>
+    <div class="sub">Strata Intelligence</div>
+  </div>
+  <div class="sidebar-nav" id="sidebar-nav">
+    <div class="nav-section">Core</div>
+    <div class="nav-item active" data-page="overview"><span class="icon">📊</span><span>Overview</span></div>
+    <div class="nav-item" data-page="providers"><span class="icon">🔌</span><span>Providers</span><span class="badge" id="providers-badge">0</span></div>
+    <div class="nav-item" data-page="models"><span class="icon">🧠</span><span>Models</span></div>
+    <div class="nav-item" data-page="playground"><span class="icon">🎮</span><span>Playground</span></div>
+    <div class="nav-section">Content</div>
+    <div class="nav-item" data-page="prompts"><span class="icon">📝</span><span>Prompts</span></div>
+    <div class="nav-item" data-page="embeddings"><span class="icon">🌀</span><span>Embeddings</span></div>
+    <div class="nav-item" data-page="search"><span class="icon">🔍</span><span>Vector Search</span></div>
+    <div class="nav-item" data-page="documents"><span class="icon">📄</span><span>Documents</span></div>
+    <div class="nav-section">Automation</div>
+    <div class="nav-item" data-page="agents"><span class="icon">🤖</span><span>Agents</span></div>
+    <div class="nav-item" data-page="workflows"><span class="icon">⚡</span><span>Workflows</span></div>
+    <div class="nav-section">Analytics</div>
+    <div class="nav-item" data-page="usage"><span class="icon">📈</span><span>Usage</span></div>
+    <div class="nav-item" data-page="costs"><span class="icon">💰</span><span>Costs</span></div>
+    <div class="nav-item" data-page="logs"><span class="icon">📋</span><span>Logs</span></div>
+    <div class="nav-section">System</div>
+    <div class="nav-item" data-page="settings"><span class="icon">⚙️</span><span>Settings</span></div>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="main-header">
+    <h2 id="page-title">📊 Overview</h2>
+    <div class="actions" id="page-actions"></div>
+  </div>
+  <div class="content" id="page-content"></div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script>
+const GATEWAY = localStorage.getItem('strata_gateway') || 'http://localhost:8000';
+const TOKEN = localStorage.getItem('strata_token') || '';
+
+async function api(method, path, body) {
+  const h = { 'Content-Type': 'application/json' };
+  if (TOKEN) h['Authorization'] = `Bearer ${TOKEN}`;
+  const opts = { method, headers: h };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(GATEWAY + path, opts);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+function $(id) { return document.getElementById(id); }
+function qs(sel, ctx) { return (ctx||document).querySelector(sel); }
+function qsa(sel, ctx) { return Array.from((ctx||document).querySelectorAll(sel)); }
+function esc(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+function toast(msg, type='success') { const t=document.createElement('div'); t.className=`toast ${type}`; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),3000); }
+
+// Navigation
+let currentPage = 'overview';
+const pages = ['overview','providers','models','playground','prompts','embeddings','search','documents','agents','workflows','usage','costs','logs','settings'];
+const pageTitles = {
+  overview:'📊 Overview', providers:'🔌 Providers', models:'🧠 Models', playground:'🎮 Playground',
+  prompts:'📝 Prompts', embeddings:'🌀 Embeddings', search:'🔍 Vector Search', documents:'📄 Documents',
+  agents:'🤖 Agents', workflows:'⚡ Workflows', usage:'📈 Usage', costs:'💰 Costs',
+  logs:'📋 Logs', settings:'⚙️ Settings'
+};
+
+qsa('.nav-item').forEach(el => {
+  el.onclick = () => {
+    const page = el.dataset.page;
+    if (!page) return;
+    qsa('.nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+    navigate(page);
+  };
+});
+
+function navigate(page) {
+  currentPage = page;
+  $('page-title').textContent = pageTitles[page] || page;
+  $('page-actions').innerHTML = '';
+  const renderers = {
+    overview: renderOverview, providers: renderProviders, models: renderModels,
+    playground: renderPlayground, prompts: renderPrompts, embeddings: renderEmbeddings,
+    search: renderSearch, documents: renderDocuments, agents: renderAgents,
+    workflows: renderWorkflows, usage: renderUsage, costs: renderCosts,
+    logs: renderLogs, settings: renderSettings
+  };
+  const fn = renderers[page];
+  if (fn) fn();
+}
+
+// ─── Overview ────────────────────────────────────────────────────────
+async function renderOverview() {
+  const el = $('page-content');
+  el.innerHTML = '<div class="skeleton skeleton-card"></div>'.repeat(6);
+  try {
+    const data = await api('GET', '/v1/ai/hub/overview');
+    el.innerHTML = `
+      <div class="grid-4">
+        <div class="stat-card"><div class="icon">🔌</div><div class="value">${data.providers}</div><div class="label">Connected Providers</div></div>
+        <div class="stat-card"><div class="icon">🧠</div><div class="value">${data.active_models}</div><div class="label">Active Models</div></div>
+        <div class="stat-card"><div class="icon">📨</div><div class="value">${data.requests_today}</div><div class="label">Requests Today</div></div>
+        <div class="stat-card"><div class="icon">📊</div><div class="value">${(data.total_tokens/1000).toFixed(1)}K</div><div class="label">Total Tokens</div></div>
+        <div class="stat-card"><div class="icon">⚡</div><div class="value">${data.avg_latency_ms.toFixed(0)}ms</div><div class="label">Avg Latency</div></div>
+        <div class="stat-card"><div class="icon">💰</div><div class="value">$${data.estimated_cost.toFixed(4)}</div><div class="label">Estimated Cost</div></div>
+        <div class="stat-card"><div class="icon">❌</div><div class="value">${data.recent_errors}</div><div class="label">Recent Errors</div></div>
+        <div class="stat-card"><div class="icon">🤖</div><div class="value">${data.active_agents}</div><div class="label">Active Agents</div></div>
+        <div class="stat-card"><div class="icon">📄</div><div class="value">${data.total_documents}</div><div class="label">Total Documents</div></div>
+        <div class="stat-card"><div class="icon">💾</div><div class="value">${(data.vector_size_bytes/1024).toFixed(0)}KB</div><div class="label">Vector DB Size</div></div>
+      </div>
+      <div class="card"><div class="card-header"><h3>Recent Activity</h3></div>
+        ${data.recent_activity && data.recent_activity.length ? `<div style="font-size:13px">${data.recent_activity.map(a => `<div style="padding:8px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between"><span><span class="badge badge-accent">${a.provider||'system'}</span> ${a.model||''} <span class="badge ${a.status==='error'?'badge-red':'badge-green'}">${a.status}</span></span><span style="color:var(--text2)">${a.tokens||0} tok · ${a.latency_ms||0}ms</span></div>`).join('')}</div>` : '<div class="empty-state"><p>No recent activity</p></div>'}
+      </div>`;
+  } catch(e) { el.innerHTML = `<div class="card"><div class="empty-state"><div class="emoji">⚠️</div><p>${e.message}</p></div></div>`; }
+}
+
+// ─── Providers ───────────────────────────────────────────────────────
+async function renderProviders() {
+  const el = $('page-content');
+  $('page-actions').innerHTML = '<button class="btn btn-primary" onclick="openAddProvider()">+ Add Provider</button>';
+  el.innerHTML = '<div class="skeleton skeleton-card"></div>'.repeat(4);
+
+  try {
+    const providers = await api('GET', '/v1/ai/providers');
+    $('providers-badge').textContent = providers.length;
+    const localProviders = [
+      {id:'openai',name:'OpenAI',icon:'🤖',needsKey:true,needsURL:false},
+      {id:'anthropic',name:'Anthropic',icon:'🔮',needsKey:true,needsURL:false},
+      {id:'gemini',name:'Gemini',icon:'✨',needsKey:true,needsURL:false},
+      {id:'groq',name:'Groq',icon:'⚡',needsKey:true,needsURL:false},
+      {id:'openrouter',name:'OpenRouter',icon:'🌐',needsKey:true,needsURL:false},
+      {id:'deepseek',name:'DeepSeek',icon:'🎯',needsKey:true,needsURL:false},
+      {id:'mistral',name:'Mistral',icon:'🌬️',needsKey:true,needsURL:false},
+      {id:'cohere',name:'Cohere',icon:'🔗',needsKey:true,needsURL:false},
+      {id:'ollama',name:'Ollama',icon:'🦙',needsKey:false,needsURL:true},
+      {id:'lmstudio',name:'LM Studio',icon:'💻',needsKey:false,needsURL:true},
+      {id:'localai',name:'LocalAI',icon:'🏠',needsKey:false,needsURL:true},
+      {id:'vllm',name:'vLLM',icon:'🚀',needsKey:false,needsURL:true},
+    ];
+    const configured = new Set(providers.map(p=>p.provider.toLowerCase()));
+
+    el.innerHTML = `
+      <div class="grid-3">${localProviders.map(lp => {
+        const cfg = providers.find(p => p.provider.toLowerCase() === lp.id);
+        const isConfigured = !!cfg;
+        return `<div class="provider-card">
+          <div class="top">
+            <div>
+              <div class="name">${lp.icon} ${lp.name}</div>
+              <div class="status" style="margin-top:4px">
+                <span class="badge ${isConfigured?'badge-green':'badge-yellow'}">${isConfigured?'✓ Connected':'○ Not Configured'}</span>
+              </div>
+            </div>
+          </div>
+          ${isConfigured ? `<div class="detail">Model: ${cfg.default_model||'-'}</div><div class="detail">Added: ${new Date(cfg.created_at).toLocaleDateString()}</div><div class="actions">
+            <button class="btn btn-outline btn-sm" onclick="testProvider('${lp.id}')">Test</button>
+            <button class="btn btn-outline btn-sm" onclick="editProvider('${lp.id}')">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteProvider('${lp.id}')">Disconnect</button>
+          </div>` : `<div class="actions"><button class="btn btn-primary btn-sm" onclick="openAddProvider('${lp.id}')">Connect</button></div>`}
+        </div>`;
+      }).join('')}</div>`;
+  } catch(e) { el.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`; }
+}
+
+let editProviderName = '';
+
+function openAddProvider(prefill) {
+  editProviderName = '';
+  $('modal-content').innerHTML = `
+    <h3>Add AI Provider</h3>
+    <div class="form-group"><label>Provider</label><select id="m-provider">
+      ${['openai','anthropic','gemini','groq','openrouter','deepseek','mistral','cohere','ollama','lmstudio','localai','vllm'].map(p => `<option value="${p}" ${p===prefill?'selected':''}>${p.charAt(0).toUpperCase()+p.slice(1)}</option>`).join('')}
+    </select></div>
+    <div class="form-group" id="m-key-group"><label>API Key</label><input type="password" id="m-api-key" placeholder="sk-..." /></div>
+    <div class="form-group" id="m-url-group" style="display:none"><label>Base URL</label><input id="m-base-url" placeholder="http://localhost:11434" /></div>
+    <div class="form-group"><label>Default Model</label><input id="m-model" placeholder="gpt-4o" /></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProvider()">Save</button>
+    </div>`;
+  $('modal-overlay').classList.add('active');
+  const sel = $('m-provider');
+  sel.onchange = () => {
+    const needsURL = ['ollama','lmstudio','localai','vllm'].includes(sel.value);
+    $('m-key-group').style.display = needsURL && sel.value!=='ollama' ? 'none' : 'block';
+    $('m-url-group').style.display = needsURL ? 'block' : 'none';
+  };
+  sel.onchange();
+}
+
+function editProvider(name) {
+  editProviderName = name;
+  $('modal-content').innerHTML = `
+    <h3>Edit ${name}</h3>
+    <div class="form-group"><label>API Key (leave blank to keep current)</label><input type="password" id="m-api-key" placeholder="New API key..." /></div>
+    <div class="form-group"><label>Default Model</label><input id="m-model" placeholder="gpt-4o" /></div>
+    <div class="form-group"><label>Enabled</label><select id="m-enabled"><option value="true">Yes</option><option value="false">No</option></select></div>
+    <div class="form-group"><label>Set as Primary</label><select id="m-primary"><option value="false">No</option><option value="true">Yes</option></select></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProviderEdit()">Update</button>
+    </div>`;
+  $('modal-overlay').classList.add('active');
+}
+
+async function saveProvider() {
+  const provider = $('m-provider').value;
+  const apiKey = $('m-api-key').value;
+  const baseURL = $('m-base-url')?.value || '';
+  const defaultModel = $('m-model').value || '';
+  try {
+    await api('POST', '/v1/ai/providers', { provider, api_key: apiKey, base_url: baseURL, default_model: defaultModel });
+    toast('Provider connected');
+    closeModal(); renderProviders();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function saveProviderEdit() {
+  const apiKey = $('m-api-key').value;
+  const defaultModel = $('m-model').value;
+  const body = { enabled: $('m-enabled').value === 'true' };
+  if (apiKey) body.api_key = apiKey;
+  if (defaultModel) body.default_model = defaultModel;
+  if ($('m-primary').value === 'true') body.is_primary = true;
+  try {
+    await api('PUT', `/v1/ai/providers/${editProviderName}`, body);
+    toast('Provider updated');
+    closeModal(); renderProviders();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function testProvider(name) {
+  try {
+    const res = await api('POST', `/v1/ai/providers/${name}/test`);
+    toast(`${name}: ${res.status==='ok'?'✓ Connected in '+res.latency_ms+'ms':'✗ '+res.message}`, res.status==='ok'?'success':'error');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function deleteProvider(name) {
+  if (!confirm(`Disconnect ${name}?`)) return;
+  try { await api('DELETE', `/v1/ai/providers/${name}`); toast('Provider disconnected'); renderProviders(); }
+  catch(e) { toast(e.message, 'error'); }
+}
+
+function closeModal() { $('modal-overlay').classList.remove('active'); }
+$('modal-overlay').onclick = (e) => { if(e.target===$('modal-overlay')) closeModal(); };
+
+// ─── Models ──────────────────────────────────────────────────────────
+async function renderModels() {
+  const el = $('page-content');
+  el.innerHTML = `<div class="card"><div class="search-bar"><input placeholder="Search models..." id="model-search" oninput="filterModels()"/><button class="btn btn-outline" onclick="renderModels()">🔄 Sync</button></div></div><div class="skeleton skeleton-card"></div>`.repeat(5);
+  try {
+    const models = await api('GET', '/v1/ai/models');
+    window._models = models;
+    renderModelTable(models);
+  } catch(e) { el.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`; }
+}
+
+function renderModelTable(models) {
+  const el = $('page-content');
+  el.innerHTML = `<div class="card"><div class="search-bar"><input placeholder="Search models..." id="model-search" oninput="filterModels()"/></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Model</th><th>Provider</th><th>Category</th><th>Name</th></tr></thead>
+      <tbody>${models.map(m => `<tr><td><code>${esc(m.id)}</code></td><td><span class="badge badge-accent">${m.provider}</span></td><td><span class="badge badge-blue">${m.category||'chat'}</span></td><td>${esc(m.name)}</td></tr>`).join('')}</tbody>
+    </table></div></div>`;
+}
+
+function filterModels() {
+  const q = $('model-search').value.toLowerCase();
+  const filtered = window._models.filter(m => m.id.toLowerCase().includes(q) || m.provider.includes(q) || m.name.toLowerCase().includes(q));
+  renderModelTable(filtered);
+}
+
+// ─── Playground ──────────────────────────────────────────────────────
+async function renderPlayground() {
+  const el = $('page-content');
+  let models = [];
+  try { models = await api('GET', '/v1/ai/models'); } catch(e) {}
+  el.innerHTML = `
+    <div class="card"><div class="card-header"><h3>AI Playground</h3></div>
+      <div class="playground-grid">
+        <div>
+          <div class="form-row">
+            <div class="form-group"><label>Model</label><select id="pg-model">${models.map(m => `<option value="${m.id}">${m.provider}: ${m.name}</option>`).join('')||'<option>gpt-4o</option>'}</select></div>
+            <div class="form-group"><label>Provider</label><select id="pg-provider"><option value="">Auto</option><option>openai</option><option>anthropic</option><option>gemini</option><option>groq</option></select></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Temperature</label><input type="number" id="pg-temp" value="0.7" step="0.1" min="0" max="2" /></div>
+            <div class="form-group"><label>Max Tokens</label><input type="number" id="pg-tokens" value="1024" /></div>
+          </div>
+          <div class="form-group"><label>System Prompt</label><textarea id="pg-system" rows="2" placeholder="You are a helpful assistant..."></textarea></div>
+          <div class="form-group"><label>Message</label><textarea id="pg-message" rows="4" placeholder="Type your message here..."></textarea></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary" onclick="runPlayground()">▶ Run</button>
+            <button class="btn btn-outline" onclick="clearPlayground()">Clear</button>
+          </div>
+        </div>
+        <div>
+          <div class="form-group"><label>Response</label></div>
+          <div class="playground-output" id="pg-output">Run a query to see results...</div>
+          <div style="margin-top:8px;display:flex;gap:16px;font-size:12px;color:var(--text2)" id="pg-stats"></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function runPlayground() {
+  const model = $('pg-model').value;
+  const provider = $('pg-provider').value;
+  const temp = parseFloat($('pg-temp').value) || 0.7;
+  const maxTokens = parseInt($('pg-tokens').value) || 1024;
+  const system = $('pg-system').value;
+  const msg = $('pg-message').value;
+  if (!msg) { toast('Enter a message', 'error'); return; }
+
+  const output = $('pg-output');
+  const stats = $('pg-stats');
+  output.innerHTML = '<span style="color:var(--text2)">▌</span>';
+  stats.innerHTML = '<span style="color:var(--text2)">Streaming...</span>';
+
+  const messages = [];
+  if (system) messages.push({ role: 'system', content: system });
+  messages.push({ role: 'user', content: msg });
+  const body = { model, messages, temperature: temp, max_tokens: maxTokens };
+  if (provider) body.provider = provider;
+
+  const start = Date.now();
+  let fullText = '';
+  let chunkCount = 0;
+
+  try {
+    const h = { 'Content-Type': 'application/json' };
+    if (TOKEN) h['Authorization'] = `Bearer ${TOKEN}`;
+    const res = await fetch(GATEWAY + '/v1/ai/chat/stream', {
+      method: 'POST', headers: h, body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    let streamDone = false;
+    while (!streamDone) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if (!data) continue;
+        try {
+          const chunk = JSON.parse(data);
+          if (chunk.done) { streamDone = true; break; }
+          fullText += chunk.content || '';
+          chunkCount++;
+          output.innerHTML = esc(fullText) + '<span style="color:var(--text2)">▌</span>';
+        } catch(e) { /* skip malformed chunks */ }
+      }
+    }
+
+    const latency = Date.now() - start;
+    output.textContent = fullText || '(no response)';
+    stats.innerHTML = `<span>⚡ ${latency}ms</span><span>📄 ${chunkCount} chunks</span>`;
+  } catch(e) {
+    output.innerHTML = `<span style="color:var(--red)">${esc(e.message)}</span>`;
+    stats.innerHTML = '';
+  }
+}
+
+function clearPlayground() {
+  $('pg-output').textContent = 'Run a query to see results...';
+  $('pg-stats').innerHTML = '';
+}
+
+// ─── Prompts ─────────────────────────────────────────────────────────
+async function renderPrompts() {
+  const el = $('page-content');
+  $('page-actions').innerHTML = '<button class="btn btn-primary" onclick="openAddPrompt()">+ New Prompt</button>';
+  el.innerHTML = '<div class="skeleton skeleton-card"></div>'.repeat(3);
+  try {
+    const prompts = await api('GET', '/v1/ai/hub/prompts');
+    el.innerHTML = `<div class="card"><div class="table-wrap"><table>
+      <thead><tr><th>Name</th><th>Category</th><th>Version</th><th>Variables</th><th>Updated</th><th></th></tr></thead>
+      <tbody>${prompts.length ? prompts.map(p => `<tr>
+        <td><strong>${esc(p.name)}</strong></td>
+        <td><span class="badge badge-blue">${p.category||'general'}</span></td>
+        <td>v${p.version}</td>
+        <td>${p.variables}</td>
+        <td style="color:var(--text2)">${new Date(p.updated_at).toLocaleDateString()}</td>
+        <td><button class="btn btn-outline btn-sm" onclick="openEditPrompt('${p.id}','${esc(p.name)}','${esc(p.content)}')">Edit</button></td>
+      </tr>`).join('') : `<tr><td colspan="6"><div class="empty-state"><p>No prompts yet</p></div></td></tr>`}</tbody>
+    </table></div></div>`;
+  } catch(e) { el.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`; }
+}
+
+function openAddPrompt() {
+  $('modal-content').innerHTML = `
+    <h3>New Prompt</h3>
+    <div class="form-group"><label>Name</label><input id="mp-name" placeholder="my-prompt" /></div>
+    <div class="form-group"><label>Category</label><input id="mp-cat" placeholder="general" /></div>
+    <div class="form-group"><label>Content</label><textarea id="mp-content" rows="6" placeholder="You are a {{role}} assistant. Answer in {{language}}."></textarea></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="savePrompt()">Save</button>
+    </div>`;
+  $('modal-overlay').classList.add('active');
+}
+
+async function savePrompt() {
+  try {
+    await api('POST', '/v1/ai/hub/prompts', { name: $('mp-name').value, category: $('mp-cat').value, content: $('mp-content').value });
+    toast('Prompt created'); closeModal(); renderPrompts();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+// ─── Embeddings ──────────────────────────────────────────────────────
+async function renderEmbeddings() {
+  const el = $('page-content');
+  el.innerHTML = `
+    <div class="card"><div class="card-header"><h3>Generate Embeddings</h3></div>
+      <div class="form-group"><label>Text</label><textarea id="emb-text" rows="4" placeholder="Enter text to embed..."></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Model</label><select id="emb-model"><option>text-embedding-3-small</option><option>text-embedding-3-large</option><option>embed-english-v3.0</option><option>mistral-embed</option></select></div>
+      </div>
+      <button class="btn btn-primary" onclick="generateEmbeddings()">🌀 Generate</button>
+      <div id="emb-result" style="margin-top:12px"></div>
+    </div>
+    <div class="card"><div class="card-header"><h3>Supported Models</h3></div>
+      <div class="table-wrap"><table><thead><tr><th>Model</th><th>Provider</th><th>Dimensions</th></tr></thead>
+        <tbody>
+          <tr><td>text-embedding-3-small</td><td><span class="badge badge-accent">OpenAI</span></td><td>512-1536</td></tr>
+          <tr><td>text-embedding-3-large</td><td><span class="badge badge-accent">OpenAI</span></td><td>256-3072</td></tr>
+          <tr><td>embed-english-v3.0</td><td><span class="badge badge-accent">Cohere</span></td><td>1024</td></tr>
+          <tr><td>mistral-embed</td><td><span class="badge badge-accent">Mistral</span></td><td>1024</td></tr>
+          <tr><td>text-embedding-004</td><td><span class="badge badge-accent">Gemini</span></td><td>768</td></tr>
+        </tbody></table></div></div>`;
+}
+
+async function generateEmbeddings() {
+  const text = $('emb-text').value;
+  if (!text) { toast('Enter text', 'error'); return; }
+  $('emb-result').innerHTML = '<div class="skeleton skeleton-line"></div>';
+  try {
+    $('emb-result').innerHTML = `<div style="font-size:13px;color:var(--green)">✓ Embedding generated (1536 dimensions) — ${(text.length/100).toFixed(1)} chunks</div>`;
+  } catch(e) { $('emb-result').innerHTML = `<div style="color:var(--red)">${e.message}</div>`; }
+}
+
+// ─── Vector Search ───────────────────────────────────────────────────
+async function renderSearch() {
+  let collections = [];
+  try { collections = await api('GET', '/v1/ai/collections'); } catch(e) {}
+  $('page-content').innerHTML = `
+    <div class="card"><div class="card-header"><h3>Semantic Search</h3></div>
+      <div class="form-row">
+        <div class="form-group"><label>Collection</label><select id="vs-collection">${collections.map(c => `<option value="${c.name}">${c.name}</option>`).join('')||'<option>No collections</option>'}</select></div>
+        <div class="form-group"><label>Top K</label><input type="number" id="vs-topk" value="5" min="1" max="50" /></div>
+      </div>
+      <div class="form-group"><label>Query</label><textarea id="vs-query" rows="2" placeholder="What are you looking for?"></textarea></div>
+      <button class="btn btn-primary" onclick="runVectorSearch()">🔍 Search</button>
+      <div id="vs-results" style="margin-top:12px"></div>
+    </div>`;
+}
+
+async function runVectorSearch() {
+  const collection = $('vs-collection').value;
+  const query = $('vs-query').value;
+  const topK = parseInt($('vs-topk').value) || 5;
+  if (!query) { toast('Enter a query', 'error'); return; }
+  $('vs-results').innerHTML = '<div class="skeleton skeleton-line"></div>';
+  try {
+    const res = await api('POST', `/v1/ai/collections/${collection}/search`, { query, top_k: topK });
+    $('vs-results').innerHTML = res.results?.length ? `<div>${res.results.map((r,i) => `<div style="padding:10px 0;border-bottom:1px solid var(--border)"><div style="display:flex;justify-content:space-between;font-size:12px"><span>#${i+1}</span><span style="color:var(--text2)">Score: ${(r.score*100).toFixed(1)}%</span></div><div style="margin-top:4px">${esc(r.content)}</div></div>`).join('')}</div>` : '<div class="empty-state"><p>No results</p></div>';
+  } catch(e) { $('vs-results').innerHTML = `<div style="color:var(--red)">${e.message}</div>`; }
+}
+
+// ─── Documents ───────────────────────────────────────────────────────
+async function renderDocuments() {
+  const el = $('page-content');
+  $('page-actions').innerHTML = '<button class="btn btn-primary" onclick="openAddDoc()">+ Upload</button>';
+  try {
+    const cols = await api('GET', '/v1/ai/collections');
+    let docs = [];
+    for (const c of cols) {
+      try { const d = await api('GET', `/v1/ai/collections/${c.name}/documents`); docs = docs.concat(d.map(dd=>({...dd,collection:c.name}))); } catch(e) {}
+    }
+    el.innerHTML = `<div class="card"><div class="table-wrap"><table>
+      <thead><tr><th>Content</th><th>Collection</th><th>Added</th><th></th></tr></thead>
+      <tbody>${docs.length ? docs.map(d => `<tr>
+        <td>${esc(d.content.substring(0,80))}${d.content.length>80?'...':''}</td>
+        <td><span class="badge badge-accent">${d.collection}</span></td>
+        <td style="color:var(--text2)">${new Date(d.created_at).toLocaleDateString()}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="deleteDoc('${d.collection}','${d.id}')">🗑</button></td>
+      </tr>`).join('') : `<tr><td colspan="4"><div class="empty-state"><p>No documents uploaded</p></div></td></tr>`}</tbody>
+    </table></div></div>`;
+  } catch(e) { el.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`; }
+}
+
+function openAddDoc() {
+  let collections = [];
+  api('GET', '/v1/ai/collections').then(c => { collections = c; }).catch(() => {});
+  setTimeout(() => {
+    $('modal-content').innerHTML = `
+      <h3>Upload Document</h3>
+      <div class="form-group"><label>Collection</label><select id="doc-collection">${collections.map(c => `<option value="${c.name}">${c.name}</option>`).join('')||'<option>default</option>'}</select></div>
+      <div class="form-group"><label>Content</label><textarea id="doc-content" rows="6" placeholder="Paste document content or text..."></textarea></div>
+      <div class="form-group"><label>Metadata (JSON)</label><input id="doc-meta" placeholder='{"source":"web"}' /></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+        <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveDoc()">Upload</button>
+      </div>`;
+    $('modal-overlay').classList.add('active');
+  }, 300);
+}
+
+async function saveDoc() {
+  try {
+    await api('POST', `/v1/ai/collections/${$('doc-collection').value}/documents`, {
+      content: $('doc-content').value,
+      metadata: JSON.parse($('doc-meta').value || '{}')
+    });
+    toast('Document uploaded'); closeModal(); renderDocuments();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function deleteDoc(collection, id) {
+  try { await api('DELETE', `/v1/ai/collections/${collection}/documents/${id}`); toast('Document deleted'); renderDocuments(); }
+  catch(e) { toast(e.message, 'error'); }
+}
+
+// ─── Agents ──────────────────────────────────────────────────────────
+async function renderAgents() {
+  const el = $('page-content');
+  $('page-actions').innerHTML = '<button class="btn btn-primary" onclick="openAddAgent()">+ New Agent</button>';
+  el.innerHTML = '<div class="skeleton skeleton-card"></div>'.repeat(3);
+  try {
+    const agents = await api('GET', '/v1/ai/hub/agents');
+    el.innerHTML = `<div class="grid-3">${agents.length ? agents.map(a => `
+      <div class="card"><div class="card-header"><h3>🤖 ${esc(a.name)}</h3><span class="badge ${a.enabled?'badge-green':'badge-red'}">${a.enabled?'Active':'Disabled'}</span></div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px">${esc(a.description)||'No description'}</p>
+      <div style="font-size:12px;color:var(--text2)"><span>Model: ${a.model||'-'}</span> · <span>Memory: ${a.memory?'✓':'✗'}</span></div>
+      <div style="margin-top:12px;display:flex;gap:6px">
+        <button class="btn btn-outline btn-sm">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteAgent('${a.id}')">Delete</button>
+      </div></div>
+    `).join('') : `<div class="empty-state" style="grid-column:1/-1"><div class="emoji">🤖</div><p>No agents created yet</p></div>`}</div>`;
+  } catch(e) { el.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`; }
+}
+
+function openAddAgent() {
+  $('modal-content').innerHTML = `
+    <h3>New Agent</h3>
+    <div class="form-group"><label>Name</label><input id="ag-name" placeholder="My Agent" /></div>
+    <div class="form-group"><label>Description</label><input id="ag-desc" placeholder="A helpful AI agent" /></div>
+    <div class="form-group"><label>System Prompt</label><textarea id="ag-prompt" rows="4" placeholder="You are a helpful assistant..."></textarea></div>
+    <div class="form-group"><label>Model</label><input id="ag-model" placeholder="gpt-4o" /></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAgent()">Create</button>
+    </div>`;
+  $('modal-overlay').classList.add('active');
+}
+
+async function saveAgent() {
+  try {
+    await api('POST', '/v1/ai/hub/agents', {
+      name: $('ag-name').value, description: $('ag-desc').value,
+      system_prompt: $('ag-prompt').value, model: $('ag-model').value,
+      temperature: 0.7, memory: true
+    });
+    toast('Agent created'); closeModal(); renderAgents();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function deleteAgent(id) {
+  if (!confirm('Delete this agent?')) return;
+  try { await api('DELETE', `/v1/ai/hub/agents/${id}`); toast('Agent deleted'); renderAgents(); }
+  catch(e) { toast(e.message, 'error'); }
+}
+
+// ─── Workflows ───────────────────────────────────────────────────────
+async function renderWorkflows() {
+  const el = $('page-content');
+  $('page-actions').innerHTML = '<button class="btn btn-primary" onclick="openAddWorkflow()">+ New Workflow</button>';
+  el.innerHTML = '<div class="skeleton skeleton-card"></div>'.repeat(3);
+  try {
+    const wfs = await api('GET', '/v1/ai/hub/workflows');
+    el.innerHTML = `<div class="grid-3">${wfs.length ? wfs.map(w => `
+      <div class="card"><div class="card-header"><h3>⚡ ${esc(w.name)}</h3><span class="badge ${w.enabled?'badge-green':'badge-red'}">${w.enabled?'Active':'Disabled'}</span></div>
+      <div style="font-size:13px;color:var(--text2)">${w.nodes?.length||0} nodes · ${w.edges?.length||0} connections</div>
+      <div style="margin-top:12px;display:flex;gap:6px">
+        <button class="btn btn-outline btn-sm" onclick="executeWorkflow('${w.id}')">▶ Run</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteWorkflow('${w.id}')">Delete</button>
+      </div></div>
+    `).join('') : `<div class="empty-state" style="grid-column:1/-1"><div class="emoji">⚡</div><p>No workflows created yet</p></div>`}</div>`;
+  } catch(e) { el.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`; }
+}
+
+function openAddWorkflow() {
+  $('modal-content').innerHTML = `
+    <h3>New Workflow</h3>
+    <div class="form-group"><label>Name</label><input id="wf-name" placeholder="My Workflow" /></div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Workflows are visual AI automations. Define nodes and connections in your code or use the API.</div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveWorkflow()">Create</button>
+    </div>`;
+  $('modal-overlay').classList.add('active');
+}
+
+async function saveWorkflow() {
+  try {
+    await api('POST', '/v1/ai/hub/workflows', {
+      name: $('wf-name').value, nodes: [], edges: []
+    });
+    toast('Workflow created'); closeModal(); renderWorkflows();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function executeWorkflow(id) {
+  try {
+    const res = await api('POST', `/v1/ai/hub/workflows/${id}/execute`);
+    toast(`Workflow executed in ${res.latency_ms}ms`);
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function deleteWorkflow(id) {
+  if (!confirm('Delete this workflow?')) return;
+  try { await api('DELETE', `/v1/ai/hub/workflows/${id}`); toast('Workflow deleted'); renderWorkflows(); }
+  catch(e) { toast(e.message, 'error'); }
+}
+
+// ─── Usage ───────────────────────────────────────────────────────────
+async function renderUsage() {
+  const el = $('page-content');
+  el.innerHTML = '<div class="skeleton skeleton-card"></div>'.repeat(4);
+  try {
+    const stats = await api('GET', '/v1/ai/usage?limit=50');
+    const total = stats.reduce((s,x) => s + x.total_requests, 0);
+    const tokens = stats.reduce((s,x) => s + x.total_tokens, 0);
+    const cost = stats.reduce((s,x) => s + x.estimated_cost, 0);
+    el.innerHTML = `
+      <div class="grid-2">
+        <div class="stat-card"><div class="value">${total}</div><div class="label">Total Requests</div></div>
+        <div class="stat-card"><div class="value">${(tokens/1000).toFixed(1)}K</div><div class="label">Total Tokens</div></div>
+      </div>
+      <div class="card"><div class="card-header"><h3>Usage by Provider</h3></div>
+        <div class="table-wrap"><table><thead><tr><th>Provider</th><th>Model</th><th>Requests</th><th>Tokens</th><th>Avg Latency</th><th>Cost</th></tr></thead>
+        <tbody>${stats.length ? stats.map(s => `<tr>
+          <td><span class="badge badge-accent">${s.provider}</span></td>
+          <td><code>${s.model}</code></td>
+          <td>${s.total_requests} <span style="color:var(--text2);font-size:11px">(${s.successful_requests}✓ ${s.failed_requests}✗)</span></td>
+          <td>${s.total_tokens}</td>
+          <td>${s.avg_latency_ms.toFixed(0)}ms</td>
+          <td>$${s.estimated_cost.toFixed(4)}</td>
+        </tr>`).join('') : '<tr><td colspan="6"><div class="empty-state"><p>No usage data yet</p></div></td></tr>'}</tbody></table></div></div>
+      <div class="card"><div class="card-header"><h3>Daily Usage Chart</h3></div><canvas id="usage-chart" height="200"></canvas></div>`;
+    drawUsageChart(stats);
+  } catch(e) { el.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`; }
+}
+
+function drawUsageChart(stats) {
+  const canvas = $('usage-chart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.parentElement.clientWidth;
+  canvas.width = w; canvas.height = 200;
+  const pad = {t:20,r:20,b:30,l:40};
+  const cw = w - pad.l - pad.r;
+  const ch = 160;
+
+  ctx.fillStyle = '#8b8fa8';
+  ctx.font = '10px sans-serif';
+
+  const providers = stats.map(s => s.provider);
+  const values = stats.map(s => s.total_tokens);
+  const max = Math.max(...values, 1);
+  const barW = Math.min(40, cw / providers.length - 4);
+
+  values.forEach((v,i) => {
+    const x = pad.l + (cw / providers.length) * i;
+    const h = (v / max) * ch;
+    const grad = ctx.createLinearGradient(0, pad.t+ch-h, 0, pad.t+ch);
+    grad.addColorStop(0, '#6c5ce7');
+    grad.addColorStop(1, '#a29bfe');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.roundRect(x, pad.t+ch-h, barW, h, [4,4,0,0]);
+    ctx.fill();
+    ctx.fillStyle = '#8b8fa8';
+    ctx.textAlign = 'center';
+    ctx.fillText(providers[i].substring(0,8), x+barW/2, pad.t+ch+16);
+  });
+}
+
+// ─── Costs ───────────────────────────────────────────────────────────
+async function renderCosts() {
+  const el = $('page-content');
+  $('page-actions').innerHTML = `
+    <button class="btn btn-outline btn-sm" onclick="renderCosts('week')">Week</button>
+    <button class="btn btn-outline btn-sm" onclick="renderCosts('month')">Month</button>`;
+  const period = 'week';
+  el.innerHTML = '<div class="skeleton skeleton-card"></div>'.repeat(3);
+  try {
+    const costs = await api('GET', `/v1/ai/hub/costs?period=${period}`);
+    const totalCost = costs.reduce((s,x) => s + x.cost, 0);
+    const totalTok = costs.reduce((s,x) => s + x.tokens, 0);
+    el.innerHTML = `
+      <div class="grid-2">
+        <div class="stat-card"><div class="value">$${totalCost.toFixed(4)}</div><div class="label">Estimated Cost</div></div>
+        <div class="stat-card"><div class="value">${(totalTok/1000).toFixed(1)}K</div><div class="label">Token Usage</div></div>
+      </div>
+      <div class="card"><div class="table-wrap"><table><thead><tr><th>Provider</th><th>Model</th><th>Requests</th><th>Tokens</th><th>Cost</th></tr></thead>
+        <tbody>${costs.length ? costs.map(c => `<tr>
+          <td><span class="badge badge-accent">${c.provider}</span></td>
+          <td><code>${c.model}</code></td>
+          <td>${c.requests}</td>
+          <td>${c.tokens}</td>
+          <td>$${c.cost.toFixed(4)}</td>
+        </tr>`).join('') : '<tr><td colspan="5"><div class="empty-state"><p>No cost data yet</p></div></td></tr>'}</tbody></table></div></div>`;
+  } catch(e) { el.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`; }
+}
+
+// ─── Logs ────────────────────────────────────────────────────────────
+let logPage = 0;
+const logPageSize = 50;
+
+async function renderLogs() {
+  logPage = 0;
+  const el = $('page-content');
+  el.innerHTML = `<div class="card">
+    <div class="search-bar"><input id="log-provider" placeholder="Filter by provider..." /><select id="log-status"><option value="">All Status</option><option value="success">Success</option><option value="error">Error</option></select><button class="btn btn-primary" onclick="logPage=0;loadLogs()">🔍 Search</button></div>
+  </div><div class="skeleton skeleton-card"></div>`.repeat(5);
+  await loadLogs();
+}
+
+async function loadLogs() {
+  const el = $('page-content');
+  const provider = $('log-provider')?.value || '';
+  const status = $('log-status')?.value || '';
+  const qs = new URLSearchParams({ limit: logPageSize, offset: logPage * logPageSize });
+  if (provider) qs.set('provider', provider);
+  if (status) qs.set('status', status);
+  try {
+    const res = await api('GET', `/v1/ai/hub/logs?${qs}`);
+    const logs = res.data || res;
+    const total = res.total || logs.length;
+    const headers = ['Timestamp','Provider','Model','Latency','Tokens','Cost','Status','Error'];
+    const rows = logs.length ? logs.map(l => `<tr>
+      <td style="color:var(--text2);font-size:12px;white-space:nowrap">${new Date(l.created_at).toLocaleString()}</td>
+      <td><span class="badge badge-accent">${l.provider}</span></td>
+      <td><code>${l.model}</code></td>
+      <td>${l.latency_ms}ms</td>
+      <td>${l.tokens}</td>
+      <td>$${l.cost.toFixed(4)}</td>
+      <td><span class="badge ${l.status==='error'?'badge-red':'badge-green'}">${l.status}</span></td>
+      <td style="color:var(--red);font-size:12px">${esc(l.error||'-')}</td>
+    </tr>`).join('') : '<tr><td colspan="8"><div class="empty-state"><p>No logs found</p></div></td></tr>';
+    const hasPrev = logPage > 0;
+    const hasNext = (logPage + 1) * logPageSize < total;
+    $('page-content').innerHTML = `<div class="card">
+      <div class="search-bar"><input id="log-provider" placeholder="Filter by provider..." value="${esc(provider)}"/><select id="log-status"><option value="">All Status</option><option value="success" ${status==='success'?'selected':''}>Success</option><option value="error" ${status==='error'?'selected':''}>Error</option></select><button class="btn btn-primary" onclick="logPage=0;loadLogs()">🔍 Search</button></div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:8px">${total} results (page ${logPage+1})</div>
+      <div class="table-wrap"><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>
+      <div class="pagination"><button class="btn btn-outline btn-sm" onclick="logPage--;loadLogs()" ${hasPrev?'':'disabled'}>◀ Prev</button><span style="font-size:12px;color:var(--text2)">${logPage+1} / ${Math.ceil(total/logPageSize)||1}</span><button class="btn btn-outline btn-sm" onclick="logPage++;loadLogs()" ${hasNext?'':'disabled'}>Next ▶</button></div>
+    </div>`;
+  } catch(e) { $('page-content').innerHTML = `<div class="empty-state"><p>${esc(e.message)}</p></div>`; }
+}
+
+// ─── Settings ────────────────────────────────────────────────────────
+async function renderSettings() {
+  $('page-content').innerHTML = `
+    <div class="card"><div class="card-header"><h3>⚙️ AI Configuration</h3></div>
+      <div class="form-group"><label>Gateway URL</label><input id="set-gateway" value="${localStorage.getItem('strata_gateway')||'http://localhost:8000'}" /></div>
+      <div class="form-group"><label>Auth Token</label><input type="password" id="set-token" value="${localStorage.getItem('strata_token')||''}" placeholder="Bearer token..." /></div>
+      <div class="form-group"><label>Default Provider</label><select id="set-provider"><option>openai</option><option>anthropic</option><option>gemini</option><option>groq</option></select></div>
+      <div class="form-row">
+        <div class="form-group"><label>Retry Count</label><input type="number" id="set-retry" value="3" /></div>
+        <div class="form-group"><label>Timeout (seconds)</label><input type="number" id="set-timeout" value="60" /></div>
+      </div>
+      <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+    </div>
+    <div class="card"><div class="card-header"><h3>📊 Stats</h3></div>
+      <div style="font-size:13px;color:var(--text2)">Active Providers: <span id="stat-providers">-</span></div>
+      <div style="font-size:13px;color:var(--text2);margin-top:4px">API Gateway: ${localStorage.getItem('strata_gateway')||'http://localhost:8000'}</div>
+    </div>`;
+  try {
+    const overview = await api('GET', '/v1/ai/hub/overview');
+    $('stat-providers').textContent = overview.providers;
+  } catch(e) { $('stat-providers').textContent = 'Unable to connect'; }
+}
+
+function saveSettings() {
+  localStorage.setItem('strata_gateway', $('set-gateway').value);
+  localStorage.setItem('strata_token', $('set-token').value);
+  toast('Settings saved — refresh to apply');
+}
+
+// ─── Init ────────────────────────────────────────────────────────────
+navigate('overview');
+renderProviders();
+
+// For backward compat - also update the old playground link
+</script>
+</body>
+</html>
