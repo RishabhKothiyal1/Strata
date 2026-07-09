@@ -1,0 +1,154 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surface-container-highest: #353534;
+  --color-on-primary-fixed: #07006c;
+  --color-on-tertiary-fixed: #301400;
+  --color-on-error-container: #ffdad6;
+  --color-on-surface-variant: #c7c4d7;
+  --color-on-surface: #e5e2e1;
+  --color-on-primary-container: #0d0096;
+  --color-on-secondary-container: #b3b1ff;
+  --color-on-primary: #1000a9;
+  --color-surface-dim: #131313;
+  --color-on-secondary-fixed: #0f0069;
+  --color-on-background: #e5e2e1;
+  --color-background: #131313;
+  --color-primary: #c0c1ff;
+  --color-primary-fixed: #e1e0ff;
+  --color-primary-container: #8083ff;
+  --color-surface-container-high: #2a2a2a;
+  --color-inverse-surface: #e5e2e1;
+  --color-on-secondary-fixed-variant: #3323cc;
+  --color-on-secondary: #1d00a5;
+  --color-surface-variant: #353534;
+  --color-outline: #908fa0;
+  --color-tertiary-container: #d97721;
+  --color-on-primary-fixed-variant: #2f2ebe;
+  --color-secondary-fixed: #e2dfff;
+  --color-on-tertiary-container: #452000;
+  --color-error: #ffb4ab;
+  --color-surface-container: #201f1f;
+  --color-tertiary: #ffb783;
+  --color-on-tertiary: #4f2500;
+  --color-surface: #131313;
+  --color-surface-bright: #393939;
+  --color-secondary-fixed-dim: #c3c0ff;
+  --color-outline-variant: #464554;
+  --color-surface-container-low: #1c1b1b;
+  --color-surface-tint: #c0c1ff;
+  --color-inverse-on-surface: #313030;
+  --color-secondary: #c3c0ff;
+  --color-on-error: #690005;
+  --color-on-tertiary-fixed-variant: #703700;
+  --color-primary-fixed-dim: #c0c1ff;
+  --color-secondary-container: #3626ce;
+  --color-inverse-primary: #494bd6;
+  --color-surface-container-lowest: #0e0e0e;
+  --color-tertiary-fixed: #ffdcc5;
+  --color-error-container: #93000a;
+  --color-tertiary-fixed-dim: #ffb783;
+
+  --border-radius-DEFAULT: 0.25rem;
+  --border-radius-lg: 0.5rem;
+  --border-radius-xl: 0.75rem;
+  --border-radius-full: 9999px;
+
+  --spacing-lg: 24px;
+  --spacing-gutter: 24px;
+  --spacing-md: 16px;
+  --spacing-base: 4px;
+  --spacing-margin-desktop: 32px;
+  --spacing-sm: 8px;
+  --spacing-margin-mobile: 16px;
+  --spacing-max-width: 1440px;
+  --spacing-xs: 4px;
+  --spacing-xl: 32px;
+
+  --font-code-sm: JetBrains Mono;
+  --font-headline-md: Plus Jakarta Sans;
+  --font-body-lg: Plus Jakarta Sans;
+  --font-headline-lg: Plus Jakarta Sans;
+  --font-body-md: Plus Jakarta Sans;
+  --font-label-md: Plus Jakarta Sans;
+  --font-headline-lg-mobile: Plus Jakarta Sans;
+
+  --max-width-xs: 20rem;
+  --max-width-sm: 24rem;
+  --max-width-md: 28rem;
+  --max-width-lg: 32rem;
+  --max-width-xl: 36rem;
+}
+
+body {
+  @apply bg-background text-on-surface font-body-md antialiased;
+}
+
+.input-glow:focus-within {
+  box-shadow: 0 0 0 3px rgba(70, 72, 212, 0.1);
+  border-color: #4648d4;
+}
+
+/* Material Symbols Outlined Custom styles */
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+/* ── Overlay animations ─────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes slideOutRight {
+  from { transform: translateX(0); }
+  to   { transform: translateX(100%); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 180ms ease-out both;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 180ms ease-out both;
+}
+
+.animate-slideInRight {
+  animation: slideInRight 200ms ease-out both;
+}
+
+/* ── Body scroll lock ───────────────────────────────────────── */
+
+.body-scroll-locked {
+  overflow: hidden !important;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 25s linear infinite;
+}
+

@@ -19,6 +19,9 @@ import (
 func New(cfg *config.Config, rdb *redis.Client) chi.Router {
 	r := chi.NewRouter()
 
+	// Enable CORS for all cross-origin requests
+	r.Use(middleware.CORS)
+
 	// Standard chi middlewares
 	r.Use(chimiddleware.RequestID)
 	r.Use(chimiddleware.RealIP)

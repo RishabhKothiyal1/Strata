@@ -23,6 +23,10 @@ export class StrataAuthClient {
     this.loadSession();
   }
 
+  private decodeUserId(payload: any): string {
+    return payload.sub || payload.user_id || String(payload.id || '');
+  }
+
   private loadSession() {
     if (typeof window !== 'undefined' && window.localStorage) {
       const stored = window.localStorage.getItem('strata.session');
@@ -33,9 +37,13 @@ export class StrataAuthClient {
           if (this.session && this.session.access_token) {
             const parts = this.session.access_token.split('.');
             if (parts.length === 3) {
-              const payload = JSON.parse(Buffer ? Buffer.from(parts[1], 'base64').toString() : atob(parts[1]));
+              const payload = JSON.parse(
+                typeof Buffer !== 'undefined'
+                  ? Buffer.from(parts[1], 'base64').toString()
+                  : atob(parts[1])
+              );
               this.user = {
-                id: payload.sub,
+                id: this.decodeUserId(payload),
                 email: payload.email,
                 role: payload.role,
                 org_id: payload.org_id,
@@ -64,7 +72,7 @@ export class StrataAuthClient {
           : atob(parts[1])
       );
       this.user = {
-        id: payload.sub,
+        id: this.decodeUserId(payload),
         email: payload.email,
         role: payload.role,
         org_id: payload.org_id,
